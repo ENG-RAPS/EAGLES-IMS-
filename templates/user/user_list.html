@@ -1,0 +1,61 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}User Management{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-users-cog"></i> User Management</h2>
+    <p class="text-muted">Manage user accounts – activate or deactivate users.</p>
+
+    <div class="table-responsive">
+        <table class="table table-striped table-bordered">
+            <thead class="table-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Role</th>
+                    <th>Branch</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td>{{ u.id }}</td>
+                    <td>{{ u.username }}</td>
+                    <td>{{ u.email|default:"-" }}</td>
+                    <td>{{ u.profile.get_role_display|default:"-" }}</td>
+                    <td>{{ u.profile.branch.name|default:"-" }}</td>
+                    <td>
+                        {% if u.is_active %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if not u.is_active %}
+                            <a href="{% url 'user:activate-user' u.id %}" class="btn btn-sm btn-success">
+                                <i class="fas fa-check"></i> Activate
+                            </a>
+                        {% elif not u.is_superuser %}
+                            <a href="{% url 'user:deactivate-user' u.id %}" class="btn btn-sm btn-warning"
+                               onclick="return confirm('Deactivate {{ u.username }}?');">
+                                <i class="fas fa-ban"></i> Deactivate
+                            </a>
+                        {% else %}
+                            <span class="text-muted">Superuser</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7" class="text-center">No users found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

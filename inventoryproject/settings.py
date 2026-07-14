@@ -9,6 +9,7 @@ https://docs.djangoproject.com/en/3.1/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/3.1/ref/settings/
 """
+import  dj_database_url 
 from decouple import config
 from pathlib import Path
 import os
@@ -24,7 +25,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '@ujr-e&a%8m%6!z(+ka16+(sm6cug(h6noe%#p%=6%d2nz5t+#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
 ALLOWED_HOSTS = []
 
@@ -68,7 +69,7 @@ MIDDLEWARE = [
 # Email
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'    # Your email host
+EMAIL_HOST = 'sbrianrapando.security.com'    # Your email host
 EMAIL_PORT = 587                  # Your email port
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = config('sbrianrapando@gmail.com', default='')   # ✅ safe default # Your email address
@@ -112,6 +113,9 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+#DATABASES["default"] =dj_database_url.parse("postgresql://eagle_django_db_user:s7V33Eso8qcmVxKgSwEASt4dxeUFgDK1@dpg-d9ao0vmcjfls73d8dksg-a.virginia-postgres.render.com/eagle_django_db")
+
+#postgresql://eagle_django_db_user:s7V33Eso8qcmVxKgSwEASt4dxeUFgDK1@dpg-d9ao0vmcjfls73d8dksg-a.virginia-postgres.render.com/eagle_django_db
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
 

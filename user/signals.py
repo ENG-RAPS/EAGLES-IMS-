@@ -1,4 +1,5 @@
 from django.contrib.auth.models import Group
+from django.db import connection
 from django.db.models.signals import post_delete, post_migrate, post_save
 from django.dispatch import receiver
 
@@ -31,6 +32,7 @@ def create_default_groups(sender, **kwargs):
     """
     Create default user groups after migrations.
     """
+
     groups = [
         "Main Admin",
         "Branch Admin",
@@ -44,6 +46,14 @@ def create_default_groups(sender, **kwargs):
         Group.objects.get_or_create(name=group_name)
 
 
+def audit_table_exists():
+    """
+    Check whether the AuditLog table exists.
+    Prevents errors during the initial migration.
+    """
+    return AuditLog._meta.db_table in connection.introspection.table_names()
+
+
 @receiver(post_save)
 def log_create_update(sender, instance, created, **kwargs):
     """
@@ -54,12 +64,17 @@ def log_create_update(sender, instance, created, **kwargs):
     if sender is AuditLog:
         return
 
+    # Skip while migrations are creating tables
+    if not audit_table_exists():
+        return
+
     # Ignore Django internal models
     if sender._meta.app_label in (
         "admin",
         "auth",
         "contenttypes",
         "sessions",
+        "migrations",
     ):
         return
 
@@ -85,12 +100,17 @@ def log_delete(sender, instance, **kwargs):
     if sender is AuditLog:
         return
 
+    # Skip while migrations are creating tables
+    if not audit_table_exists():
+        return
+
     # Ignore Django internal models
     if sender._meta.app_label in (
         "admin",
         "auth",
         "contenttypes",
         "sessions",
+        "migrations",
     ):
         return
 
@@ -104,4 +124,3 @@ def log_delete(sender, instance, **kwargs):
         changes={},
         branch=getattr(instance, "branch", None),
     )
-

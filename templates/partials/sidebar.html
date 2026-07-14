@@ -175,16 +175,40 @@
             </li>
             {% endif %}
         {% endif %}
+
+        <!-- ===== USER MANAGEMENT (Admin only) ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:list' %}">
+                    <i class="fas fa-users-cog"></i> User Management
+                </a>
+            </li>
+            {% endif %}
+        {% endif %}
+        <!-- ===== BRANCH MANAGEMENT (Admin only) ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:branch_list' %}">
+                    <i class="fas fa-store"></i> Branch Management
+                </a>
+            </li>
+            {% endif %}
+        {% endif %}
+
         <!-- ===== MY PROFILE ===== -->
         <li class="nav-item">
             <a class="nav-link text-white" href="{% url 'user:profile' %}">
                 <i class="fas fa-user-cog"></i> My Profile
             </a>
         </li>
+
+        <!-- ===== INBOX ===== -->
         <li class="nav-item">
-    <a class="nav-link text-white" href="{% url 'notifications:inbox' %}">
-        <i class="fas fa-bell"></i> Inbox
-    </a>
-</li>
-</ul>
+            <a class="nav-link text-white" href="{% url 'notifications:inbox' %}">
+                <i class="fas fa-bell"></i> Inbox
+            </a>
+        </li>
+    </ul>
 </div>

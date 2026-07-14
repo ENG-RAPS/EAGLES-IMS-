@@ -1,0 +1,35 @@
+{% extends 'partials/base.html' %}
+
+{% block title %}Delete Branch{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-danger text-white">
+            <h4><i class="fas fa-exclamation-triangle"></i> Confirm Deletion</h4>
+        </div>
+        <div class="card-body">
+            {% if related_profiles > 0 or related_products > 0 or related_equipment > 0 %}
+                <div class="alert alert-warning">
+                    <strong>Cannot delete this branch.</strong>
+                    <p>It has the following related records:</p>
+                    <ul>
+                        {% if related_profiles > 0 %}<li>{{ related_profiles }} user profile(s) assigned to this branch</li>{% endif %}
+                        {% if related_products > 0 %}<li>{{ related_products }} product(s) in this branch</li>{% endif %}
+                        {% if related_equipment > 0 %}<li>{{ related_equipment }} equipment item(s) in this branch</li>{% endif %}
+                    </ul>
+                    <p>Please reassign or delete these records first, then try again.</p>
+                </div>
+                <a href="{% url 'user:branch_list' %}" class="btn btn-secondary">Back to Branches</a>
+            {% else %}
+                <p>Are you sure you want to delete branch <strong>{{ branch.name }}</strong>?</p>
+                <form method="post">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash"></i> Confirm Delete</button>
+                    <a href="{% url 'user:branch_list' %}" class="btn btn-secondary">Cancel</a>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

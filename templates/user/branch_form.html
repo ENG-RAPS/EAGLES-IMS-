@@ -1,0 +1,41 @@
+{% extends 'partials/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4><i class="fas fa-store"></i> {{ title }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Branch Name *</label>
+                    <input type="text" name="name" id="name" class="form-control" value="{{ branch.name|default:'' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="location" class="form-label">Location *</label>
+                    <input type="text" name="location" id="location" class="form-control" value="{{ branch.location|default:'' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="phone" class="form-label">Phone</label>
+                    <input type="text" name="phone" id="phone" class="form-control" value="{{ branch.phone|default:'' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" name="email" id="email" class="form-control" value="{{ branch.email|default:'' }}">
+                </div>
+                <div class="mb-3 form-check">
+                    <input type="checkbox" name="status" id="status" class="form-check-input" {% if branch.status != False %}checked{% endif %}>
+                    <label for="status" class="form-check-label">Active</label>
+                </div>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Save</button>
+                <a href="{% url 'user:branch_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
