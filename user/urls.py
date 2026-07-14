@@ -34,4 +34,12 @@ path('branches/create/', views.branch_create, name='branch_create'),
 path('branches/edit/<int:branch_id>/', views.branch_edit, name='branch_edit'),
 path('branches/delete/<int:branch_id>/', views.branch_delete, name='branch_delete'),
     
+    
+    
+    # Department Management
+path('departments/', views.department_list, name='department_list'),
+path('departments/create/', views.department_create, name='department_create'),
+path('departments/edit/<int:department_id>/', views.department_edit, name='department_edit'),
+path('departments/delete/<int:department_id>/', views.department_delete, name='department_delete'),
+    
 ]

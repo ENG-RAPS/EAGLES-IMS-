@@ -1,0 +1,36 @@
+{% extends 'partials/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+            <h4><i class="fas fa-building"></i> {{ title }}</h4>
+        </div>
+        <div class="card-body">
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="name" class="form-label">Department Name *</label>
+                    <input type="text" name="name" id="name" class="form-control" value="{{ department.name|default:'' }}" required>
+                </div>
+                <div class="mb-3">
+                    <label for="branch" class="form-label">Branch *</label>
+                    <select name="branch" id="branch" class="form-select" required>
+                        <option value="">Select Branch</option>
+                        {% for branch in branches %}
+                            <option value="{{ branch.id }}" {% if department.branch.id == branch.id %}selected{% endif %}>
+                                {{ branch.name }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Save</button>
+                <a href="{% url 'user:department_list' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

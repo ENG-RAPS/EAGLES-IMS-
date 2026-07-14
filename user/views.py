@@ -198,3 +198,56 @@ def branch_delete(request, branch_id):
         'related_products': related_products,
         'related_equipment': related_equipment,
     })
+    
+    
+# ---------- DEPARTMENT MANAGEMENT (Admin only) ----------
+@login_required
+@permission_required('user.view_department', raise_exception=True)
+def department_list(request):
+    departments = Department.objects.select_related('branch').all().order_by('name')
+    return render(request, 'user/department_list.html', {'departments': departments})
+
+@login_required
+@permission_required('user.add_department', raise_exception=True)
+def department_create(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        branch_id = request.POST.get('branch')
+        if name and branch_id:
+            branch = get_object_or_404(Branch, id=branch_id)
+            Department.objects.create(name=name, branch=branch)
+            messages.success(request, f'Department "{name}" created successfully.')
+            return redirect('user:department_list')
+        else:
+            messages.error(request, 'Name and Branch are required.')
+    branches = Branch.objects.filter(status=True)
+    return render(request, 'user/department_form.html', {'branches': branches, 'title': 'Add Department'})
+
+@login_required
+@permission_required('user.change_department', raise_exception=True)
+def department_edit(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+    if request.method == 'POST':
+        department.name = request.POST.get('name')
+        branch_id = request.POST.get('branch')
+        if branch_id:
+            department.branch = get_object_or_404(Branch, id=branch_id)
+        department.save()
+        messages.success(request, f'Department "{department.name}" updated successfully.')
+        return redirect('user:department_list')
+    branches = Branch.objects.filter(status=True)
+    return render(request, 'user/department_form.html', {
+        'department': department,
+        'branches': branches,
+        'title': 'Edit Department'
+    })
+
+@login_required
+@permission_required('user.delete_department', raise_exception=True)
+def department_delete(request, department_id):
+    department = get_object_or_404(Department, id=department_id)
+    if request.method == 'POST':
+        department.delete()
+        messages.success(request, f'Department "{department.name}" deleted.')
+        return redirect('user:department_list')
+    return render(request, 'user/department_confirm_delete.html', {'department': department})

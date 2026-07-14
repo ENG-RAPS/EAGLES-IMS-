@@ -25,9 +25,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = '@ujr-e&a%8m%6!z(+ka16+(sm6cug(h6noe%#p%=6%d2nz5t+#'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-ALLOWED_HOSTS = []
+SECRET_KEY = os.environ.get("SECRET_KEY")
+DEBUG = os.environ.get("DEBUG", "False")
+ALLOWED_HOSTS = os.environ.get("ALLOWED_HOSTS").split(" ")
 
 # Application definition
 
@@ -106,14 +106,15 @@ WSGI_APPLICATION = 'inventoryproject.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-
+database_url =os.environ.get("DATABASES_URL")
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
-#DATABASES["default"] =dj_database_url.parse("postgresql://eagle_django_db_user:s7V33Eso8qcmVxKgSwEASt4dxeUFgDK1@dpg-d9ao0vmcjfls73d8dksg-a.virginia-postgres.render.com/eagle_django_db")
+
+DATABASES["default"] =dj_database_url.parse("postgresql://eagle_django_db_user:s7V33Eso8qcmVxKgSwEASt4dxeUFgDK1@dpg-d9ao0vmcjfls73d8dksg-a.virginia-postgres.render.com/eagle_django_db")
 
 #postgresql://eagle_django_db_user:s7V33Eso8qcmVxKgSwEASt4dxeUFgDK1@dpg-d9ao0vmcjfls73d8dksg-a.virginia-postgres.render.com/eagle_django_db
 # Password validation
@@ -150,6 +151,8 @@ USE_TZ = True
 
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
+
+handler404 = 'your_app.views.custom_404'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
