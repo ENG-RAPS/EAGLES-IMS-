@@ -66,7 +66,11 @@ def index(request):
         ).count()
         overdue_ppm_count = PPM.objects.filter(status='Overdue').count()
         total_transactions = StockTransaction.objects.count()
-        
+         # Inside the MAIN_ADMIN block:
+        stock_in_count = StockTransaction.objects.filter(transaction_type='RECEIVE').count()
+        stock_out_count = StockTransaction.objects.filter(transaction_type='ISSUE').count()
+        # Then add to context.update():
+            
         # ---- BIOMED STATS FOR MAIN ADMIN ----
         total_equipment = Equipment.objects.count()
         working_count = Equipment.objects.filter(status='Working').count()
@@ -88,6 +92,9 @@ def index(request):
             'pending_transfers': pending_transfers,
             'recent_transactions': StockTransaction.objects.all().order_by('-transaction_date')[:5],
             'recent_equipment': Equipment.objects.all().order_by('-date_added')[:5],
+            
+            'stock_in_count': stock_in_count,
+            'stock_out_count': stock_out_count,
         })
 
         # ----- Equipment Status -----
