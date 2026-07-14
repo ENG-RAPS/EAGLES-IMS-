@@ -198,8 +198,14 @@ def branch_delete(request, branch_id):
         'related_products': related_products,
         'related_equipment': related_equipment,
     })
+<<<<<<< HEAD
     
     
+=======
+
+
+
+>>>>>>> 882b413e3115f175b32aa17ee2f6b8e8fba06cda
 # ---------- DEPARTMENT MANAGEMENT (Admin only) ----------
 @login_required
 @permission_required('user.view_department', raise_exception=True)
@@ -250,4 +256,8 @@ def department_delete(request, department_id):
         department.delete()
         messages.success(request, f'Department "{department.name}" deleted.')
         return redirect('user:department_list')
+<<<<<<< HEAD
     return render(request, 'user/department_confirm_delete.html', {'department': department})
+=======
+    return render(request, 'user/department_confirm_delete.html', {'department': department})
+>>>>>>> 882b413e3115f175b32aa17ee2f6b8e8fba06cda
