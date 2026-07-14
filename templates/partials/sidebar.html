@@ -197,6 +197,18 @@
             {% endif %}
         {% endif %}
 
+  <!-- ===== DEPARTMENT MANAGEMENT (Admin only) ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:department_list' %}">
+                    <i class="fas fa-building"></i> Department Management
+                </a>
+            </li>
+            {% endif %}
+        {% endif %}
+
+
         <!-- ===== MY PROFILE ===== -->
         <li class="nav-item">
             <a class="nav-link text-white" href="{% url 'user:profile' %}">
