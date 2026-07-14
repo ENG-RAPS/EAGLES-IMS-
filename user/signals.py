@@ -1,0 +1,107 @@
+from django.contrib.auth.models import Group
+from django.db.models.signals import post_delete, post_migrate, post_save
+from django.dispatch import receiver
+
+from user.middleware import get_current_user
+from .models import AuditLog
+
+
+def get_audit_user(instance):
+    """
+    Determine the user responsible for the action.
+    Priority:
+    1. Current authenticated user from middleware.
+    2. created_by field.
+    3. requested_by field.
+    """
+
+    user = get_current_user()
+
+    if user and user.is_authenticated:
+        return user
+
+    return (
+        getattr(instance, "created_by", None)
+        or getattr(instance, "requested_by", None)
+    )
+
+
+@receiver(post_migrate)
+def create_default_groups(sender, **kwargs):
+    """
+    Create default user groups after migrations.
+    """
+    groups = [
+        "Main Admin",
+        "Branch Admin",
+        "Store Admin",
+        "Store Officer",
+        "Biomed Admin",
+        "Biomed Technician",
+    ]
+
+    for group_name in groups:
+        Group.objects.get_or_create(name=group_name)
+
+
+@receiver(post_save)
+def log_create_update(sender, instance, created, **kwargs):
+    """
+    Record CREATE and UPDATE actions in the audit log.
+    """
+
+    # Prevent recursion
+    if sender is AuditLog:
+        return
+
+    # Ignore Django internal models
+    if sender._meta.app_label in (
+        "admin",
+        "auth",
+        "contenttypes",
+        "sessions",
+    ):
+        return
+
+    AuditLog.objects.create(
+        user=get_audit_user(instance),
+        action="CREATE" if created else "UPDATE",
+        app_label=sender._meta.app_label,
+        model_name=sender.__name__,
+        object_id=instance.pk,
+        object_repr=str(instance),
+        changes={},
+        branch=getattr(instance, "branch", None),
+    )
+
+
+@receiver(post_delete)
+def log_delete(sender, instance, **kwargs):
+    """
+    Record DELETE actions in the audit log.
+    """
+
+    # Prevent recursion
+    if sender is AuditLog:
+        return
+
+    # Ignore Django internal models
+    if sender._meta.app_label in (
+        "admin",
+        "auth",
+        "contenttypes",
+        "sessions",
+    ):
+        return
+
+    AuditLog.objects.create(
+        user=get_audit_user(instance),
+        action="DELETE",
+        app_label=sender._meta.app_label,
+        model_name=sender.__name__,
+        object_id=instance.pk,
+        object_repr=str(instance),
+        changes={},
+        branch=getattr(instance, "branch", None),
+    )
+

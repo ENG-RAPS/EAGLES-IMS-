@@ -1,0 +1,101 @@
+{% extends 'partials/base.html' %}
+{% load crispy_forms_tags %}
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow">
+                <div class="card-header bg-info text-white">
+                    <h4 class="mb-0"><i class="fas fa-microscope"></i> {{ title }}</h4>
+                </div>
+                <div class="card-body">
+                    <form method="post" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Row 1: Equipment Name + Category -->
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {{ form.equipment_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.category|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Row 2: Manufacturer + Model Number -->
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {{ form.manufacturer|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.model_number|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Row 3: Serial Number + Asset Tag -->
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {{ form.serial_number|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.asset_tag|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Row 4: Purchase Date + Purchase Cost -->
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {{ form.purchase_date|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.purchase_cost|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Row 5: Supplier + Warranty Expiry -->
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {{ form.supplier|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.warranty_expiry|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Row 6: Department + Location -->
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {{ form.department|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.location|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Row 7: Status -->
+                        <div class="form-row">
+                            <div class="col-md-12">
+                                {{ form.status|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="form-row mt-3">
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-success">
+                                    <i class="fas fa-save"></i> Save
+                                </button>
+                                <a href="{% url 'biomed:equipment_list' %}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> Cancel
+                                </a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

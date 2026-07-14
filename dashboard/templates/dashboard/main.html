@@ -1,0 +1,615 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Eagle IMS{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<style>
+    .dashboard-card {
+        border-radius: 12px;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: none;
+        height: 100%;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .dashboard-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 20px rgba(0,0,0,0.10);
+    }
+    .dashboard-card .card-body {
+        padding: 1.25rem 1.25rem;
+    }
+    .dashboard-card .stat-number {
+        font-size: 2.2rem;
+        font-weight: 700;
+        line-height: 1.2;
+    }
+    .dashboard-card .stat-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        opacity: 0.85;
+    }
+    .dashboard-card .stat-link {
+        font-size: 0.75rem;
+        font-weight: 500;
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(255,255,255,0.3);
+        color: rgba(255,255,255,0.9);
+        transition: border-color 0.2s;
+    }
+    .dashboard-card .stat-link:hover {
+        border-bottom-color: #fff;
+        color: #fff;
+    }
+    .welcome-alert {
+        border-radius: 12px;
+        border: none;
+        padding: 1rem 1.5rem;
+        background: linear-gradient(135deg, #e8f0fe 0%, #f3f6fc 100%);
+        border-left: 4px solid #0d6efd;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+    }
+    .quick-actions .btn {
+        border-radius: 30px;
+        padding: 0.35rem 1.2rem;
+        font-weight: 500;
+        font-size: 0.8rem;
+        transition: all 0.2s;
+        margin: 0.15rem 0;
+    }
+    .quick-actions .btn:hover {
+        transform: scale(1.04);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .section-header {
+        font-size: 1.2rem;
+        font-weight: 600;
+        color: #2b2d42;
+        margin-bottom: 1rem;
+        border-left: 4px solid #0d6efd;
+        padding-left: 0.75rem;
+    }
+    .chart-box {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+        height: 100%;
+        transition: box-shadow 0.2s;
+    }
+    .chart-box:hover {
+        box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+    }
+    .chart-box .chart-title {
+        font-weight: 600;
+        color: #2b2d42;
+        margin-bottom: 0.75rem;
+        font-size: 0.95rem;
+    }
+    .recent-activity-list {
+        max-height: 100px;
+        overflow-y: auto;
+        margin-top: 0.25rem;
+    }
+    .recent-activity-list::-webkit-scrollbar {
+        width: 3px;
+    }
+    .recent-activity-list::-webkit-scrollbar-thumb {
+        background: rgba(255,255,255,0.3);
+        border-radius: 4px;
+    }
+    .recent-activity-list .list-group-item {
+        background: transparent;
+        border: none;
+        padding: 0.2rem 0;
+        color: rgba(255,255,255,0.9);
+        font-size: 0.78rem;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .recent-activity-list .list-group-item:last-child {
+        border-bottom: none;
+    }
+    @media (max-width: 768px) {
+        .dashboard-card .stat-number {
+            font-size: 1.8rem;
+        }
+        .quick-actions .btn {
+            font-size: 0.7rem;
+            padding: 0.25rem 0.8rem;
+        }
+    }
+    @media (max-width: 576px) {
+        .dashboard-card .stat-number {
+            font-size: 1.5rem;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-lg-4">
+
+    <!-- ========== WELCOME ALERT ========== -->
+    <div class="welcome-alert mt-3 mb-4">
+        <div class="d-flex flex-wrap justify-content-between align-items-center">
+            <div>
+                <strong>{{ greeting|default:"Welcome back!" }}</strong>
+                <span class="text-muted ms-2">
+                    <i class="fas fa-user-tag me-1"></i> Role: <strong>{{ user.profile.get_role_display|default:user_role }}</strong>
+                    {% if branch %} | <i class="fas fa-store me-1"></i> Branch: {{ branch.name }}{% endif %}
+                </span>
+            </div>
+            <div class="text-muted small">
+                <i class="far fa-calendar-alt me-1"></i> {{ now|date:"l, F j, Y" }} &nbsp;|&nbsp; <i class="far fa-clock"></i> {{ now|time:"g:i A" }}
+            </div>
+        </div>
+    </div>
+
+    <!-- ========== QUICK ACTIONS ========== -->
+    <div class="quick-actions mb-4">
+        <div class="d-flex flex-wrap gap-2 align-items-center">
+            <span class="fw-semibold me-2" style="font-size:0.9rem;"><i class="fas fa-bolt"></i> Quick Actions:</span>
+            {% if can_add_product %}
+                <a href="{% url 'store:product_create' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-plus"></i> Add Product
+                </a>
+            {% endif %}
+            {% if can_add_transaction %}
+                <a href="{% url 'store:transaction_create' %}" class="btn btn-outline-success">
+                    <i class="fas fa-exchange-alt"></i> New Transaction
+                </a>
+            {% endif %}
+            {% if can_add_equipment %}
+                <a href="{% url 'biomed:equipment_create' %}" class="btn btn-outline-info">
+                    <i class="fas fa-plus"></i> Add Equipment
+                </a>
+            {% endif %}
+            {% if can_add_ppm %}
+                <a href="{% url 'biomed:ppm_create' %}" class="btn btn-outline-warning">
+                    <i class="fas fa-calendar-plus"></i> Schedule PPM
+                </a>
+            {% endif %}
+            <a href="{% url 'user:profile' %}" class="btn btn-outline-secondary">
+                <i class="fas fa-user-cog"></i> My Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- ========== STORE OVERVIEW ========== -->
+    {% if show_main_admin or show_store or show_branch_admin %}
+    <div class="section-header mt-4">
+        <i class="fas fa-boxes text-primary me-2"></i> Store Overview
+    </div>
+    <div class="row g-3 mb-4">
+        {% if show_main_admin %}
+            <!-- MAIN ADMIN STORE CARDS -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-primary">
+                    <div class="card-body">
+                        <div class="stat-label">Total Products</div>
+                        <div class="stat-number">{{ total_products }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-success">
+                    <div class="card-body">
+                        <div class="stat-label">Total Transactions</div>
+                        <div class="stat-number">{{ total_transactions|default:0 }}</div>
+                        <a href="{% url 'store:transaction_list' %}" class="stat-link">View all →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="stat-label">Low Stock</div>
+                        <div class="stat-number">{{ low_stock_count }}</div>
+                        {% if low_stock_count > 0 %}
+                            <a href="{% url 'store:low_stock_report' %}" class="stat-link">View items →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-danger">
+                    <div class="card-body">
+                        <div class="stat-label">Pending Approvals</div>
+                        <div class="stat-number">{{ pending_approvals }}</div>
+                        {% if pending_approvals > 0 %}
+                            <a href="{% url 'store:transaction_list' %}?status=PENDING" class="stat-link">Review →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-info">
+                    <div class="card-body">
+                        <div class="stat-label">Recent Activity</div>
+                        <div class="recent-activity-list">
+                            <ul class="list-unstyled mb-0">
+                                {% for txn in recent_transactions|slice:":4" %}
+                                    <li class="list-group-item">
+                                        <i class="fas fa-circle me-1" style="color: {% if txn.transaction_type == 'RECEIVE' %}#8effb0{% else %}#ffb08e{% endif %}; font-size: 0.4rem;"></i>
+                                        {{ txn.product.name }} ({{ txn.get_transaction_type_display }})
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item text-white-50">No recent</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <a href="{% url 'store:transaction_list' %}" class="stat-link mt-1 d-block">See all →</a>
+                    </div>
+                </div>
+            </div>
+        {% elif show_store or show_branch_admin %}
+            <!-- STORE / BRANCH ADMIN CARDS (4 cards) -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-primary">
+                    <div class="card-body">
+                        <div class="stat-label">Total Products</div>
+                        <div class="stat-number">{{ product_count }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-success">
+                    <div class="card-body">
+                        <div class="stat-label">Total Transactions</div>
+                        <div class="stat-number">{{ total_transactions|default:0 }}</div>
+                        <a href="{% url 'store:transaction_list' %}" class="stat-link">View →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="stat-label">Low Stock</div>
+                        <div class="stat-number">{{ low_stock_count }}</div>
+                        {% if low_stock_count > 0 %}
+                            <a href="{% url 'store:low_stock_report' %}" class="stat-link">View →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-info">
+                    <div class="card-body">
+                        <div class="stat-label">Recent Activity</div>
+                        <div class="recent-activity-list">
+                            <ul class="list-unstyled mb-0">
+                                {% for txn in recent_transactions|slice:":3" %}
+                                    <li class="list-group-item">
+                                        <i class="fas fa-circle me-1" style="color: {% if txn.transaction_type == 'RECEIVE' %}#8effb0{% else %}#ffb08e{% endif %}; font-size: 0.4rem;"></i>
+                                        {{ txn.product.name }} ({{ txn.get_transaction_type_display }})
+                                    </li>
+                                {% empty %}
+                                    <li class="list-group-item text-white-50">No recent</li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <a href="{% url 'store:transaction_list' %}" class="stat-link mt-1 d-block">See all →</a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ========== BIOMED OVERVIEW ========== -->
+    {% if show_main_admin or show_biomed or show_branch_admin %}
+    <div class="section-header mt-4">
+        <i class="fas fa-microscope text-success me-2"></i> Biomed Overview
+    </div>
+    <div class="row g-3 mb-4">
+        {% if show_main_admin %}
+            <!-- MAIN ADMIN BIOMED CARDS -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-success">
+                    <div class="card-body">
+                        <div class="stat-label">Total Equipment</div>
+                        <div class="stat-number">{{ total_equipment }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-info">
+                    <div class="card-body">
+                        <div class="stat-label">Working</div>
+                        <div class="stat-number">{{ working_count|default:0 }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-danger">
+                    <div class="card-body">
+                        <div class="stat-label">Faulty / Repair</div>
+                        <div class="stat-number">{{ faulty_count|add:under_repair_count|default:0 }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="stat-label">Pending / Upcoming PPM</div>
+                        <div class="stat-number">{{ upcoming_ppm_count }}</div>
+                        {% if upcoming_ppm_count > 0 %}
+                            <a href="{% url 'biomed:ppm_list' %}?status=Pending" class="stat-link text-dark">View →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-danger">
+                    <div class="card-body">
+                        <div class="stat-label">Overdue PPM</div>
+                        <div class="stat-number">{{ overdue_ppm_count }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-secondary">
+                    <div class="card-body">
+                        <div class="stat-label">Pending Transfers</div>
+                        <div class="stat-number">{{ pending_transfers|default:0 }}</div>
+                    </div>
+                </div>
+            </div>
+        {% elif show_biomed or show_branch_admin %}
+            <!-- BIOMED / BRANCH ADMIN CARDS (4 cards) -->
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-success">
+                    <div class="card-body">
+                        <div class="stat-label">Total Equipment</div>
+                        <div class="stat-number">{{ total_equipment }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-info">
+                    <div class="card-body">
+                        <div class="stat-label">Working</div>
+                        <div class="stat-number">{{ working_count }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-danger">
+                    <div class="card-body">
+                        <div class="stat-label">Faulty / Repair</div>
+                        <div class="stat-number">{{ faulty_count|add:under_repair_count }}</div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="card dashboard-card text-white bg-warning">
+                    <div class="card-body">
+                        <div class="stat-label">Pending PPM</div>
+                        <div class="stat-number">{{ pending_ppm }}</div>
+                        {% if pending_ppm > 0 %}
+                            <a href="{% url 'biomed:ppm_list' %}?status=Pending" class="stat-link text-dark">View →</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ========== CHARTS ========== -->
+    <div class="row g-4 mb-4">
+        {% if chart_data.category_labels %}
+        <div class="col-md-6">
+            <div class="chart-box">
+                <div class="chart-title"><i class="fas fa-chart-pie text-primary me-2"></i> Products by Category</div>
+                <canvas id="categoryChart" height="200"></canvas>
+            </div>
+        </div>
+        {% endif %}
+        {% if chart_data.movement_months %}
+        <div class="col-md-6">
+            <div class="chart-box">
+                <div class="chart-title"><i class="fas fa-chart-bar text-success me-2"></i> Stock Movement (Last 6 Months)</div>
+                <canvas id="movementChart" height="200"></canvas>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row g-4 mb-4">
+        {% if chart_data.eq_labels %}
+        <div class="col-md-6">
+            <div class="chart-box">
+                <div class="chart-title"><i class="fas fa-chart-pie text-info me-2"></i> Equipment Status</div>
+                <canvas id="equipmentStatusChart" height="200"></canvas>
+            </div>
+        </div>
+        {% endif %}
+        {% if chart_data.ppm_labels %}
+        <div class="col-md-6">
+            <div class="chart-box">
+                <div class="chart-title"><i class="fas fa-chart-pie text-warning me-2"></i> PPM Status</div>
+                <canvas id="ppmStatusChart" height="200"></canvas>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if show_main_admin %}
+    <div class="row g-4">
+        {% if chart_data.low_stock_labels %}
+        <div class="col-md-6">
+            <div class="chart-box">
+                <div class="chart-title"><i class="fas fa-chart-bar text-danger me-2"></i> Top 5 Low Stock Items</div>
+                <canvas id="lowStockChart" height="200"></canvas>
+            </div>
+        </div>
+        {% endif %}
+        {% if chart_data.dept_labels %}
+        <div class="col-md-6">
+            <div class="chart-box">
+                <div class="chart-title"><i class="fas fa-chart-bar text-secondary me-2"></i> Equipment by Department</div>
+                <canvas id="deptChart" height="200"></canvas>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ========== CHART.JS SCRIPTS ========== -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartData = {{ chart_data_json|safe }};
+
+        function createChart(ctxId, config) {
+            const ctx = document.getElementById(ctxId);
+            if (!ctx) return;
+            new Chart(ctx, config);
+        }
+
+        // 1. Category Pie Chart
+        if (chartData.category_labels && chartData.category_data) {
+            createChart('categoryChart', {
+                type: 'pie',
+                data: {
+                    labels: JSON.parse(chartData.category_labels),
+                    datasets: [{
+                        data: JSON.parse(chartData.category_data),
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // 2. Stock Movement Bar Chart
+        if (chartData.movement_months) {
+            createChart('movementChart', {
+                type: 'bar',
+                data: {
+                    labels: JSON.parse(chartData.movement_months),
+                    datasets: [
+                        {
+                            label: 'Stock In',
+                            data: JSON.parse(chartData.received_qty),
+                            backgroundColor: 'rgba(28, 200, 138, 0.7)',
+                            borderColor: '#1cc88a',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Stock Out',
+                            data: JSON.parse(chartData.issued_qty),
+                            backgroundColor: 'rgba(231, 74, 59, 0.7)',
+                            borderColor: '#e74a3b',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // 3. Equipment Status Pie
+        if (chartData.eq_labels) {
+            createChart('equipmentStatusChart', {
+                type: 'pie',
+                data: {
+                    labels: JSON.parse(chartData.eq_labels),
+                    datasets: [{
+                        data: JSON.parse(chartData.eq_data),
+                        backgroundColor: ['#1cc88a', '#e74a3b', '#f6c23e', '#36b9cc']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // 4. PPM Status Pie
+        if (chartData.ppm_labels) {
+            createChart('ppmStatusChart', {
+                type: 'pie',
+                data: {
+                    labels: JSON.parse(chartData.ppm_labels),
+                    datasets: [{
+                        data: JSON.parse(chartData.ppm_data),
+                        backgroundColor: ['#f6c23e', '#e74a3b', '#1cc88a', '#36b9cc']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // 5. Low Stock Chart (Main Admin)
+        if (chartData.low_stock_labels) {
+            createChart('lowStockChart', {
+                type: 'bar',
+                data: {
+                    labels: JSON.parse(chartData.low_stock_labels),
+                    datasets: [
+                        {
+                            label: 'Current Stock',
+                            data: JSON.parse(chartData.low_stock_qty),
+                            backgroundColor: 'rgba(231, 74, 59, 0.7)',
+                            borderColor: '#e74a3b',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Min Stock Level',
+                            data: JSON.parse(chartData.low_stock_min),
+                            backgroundColor: 'rgba(54, 185, 204, 0.7)',
+                            borderColor: '#36b9cc',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // 6. Equipment by Department (Main Admin)
+        if (chartData.dept_labels) {
+            createChart('deptChart', {
+                type: 'bar',
+                data: {
+                    labels: JSON.parse(chartData.dept_labels),
+                    datasets: [{
+                        label: 'Equipment Count',
+                        data: JSON.parse(chartData.dept_data),
+                        backgroundColor: 'rgba(78, 115, 223, 0.7)',
+                        borderColor: '#4e73df',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

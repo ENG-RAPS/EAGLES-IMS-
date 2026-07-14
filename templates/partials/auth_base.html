@@ -1,0 +1,132 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Eagle IMS - Login{% endblock %}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* Prevent horizontal scroll on all devices */
+        html, body {
+            overflow-x: hidden !important;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e8f0fe 0%, #d4e0f0 100%);
+        }
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .auth-card {
+            max-width: 420px;
+            width: 100%;
+            border: none;
+            border-radius: 16px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+            background: #fff;
+            padding: 30px 25px;
+            transition: transform 0.2s;
+        }
+        .auth-card:hover {
+            transform: translateY(-2px);
+        }
+        .auth-card .logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .auth-card .logo i {
+            font-size: 48px;
+            color: #0d6efd;
+        }
+        .auth-card .logo h4 {
+            color: #2b2d42;
+            font-weight: 600;
+            margin-top: 8px;
+        }
+        .auth-card .form-control {
+            border-radius: 30px;
+            padding: 10px 18px;
+            border: 1px solid #ced4da;
+            transition: border-color 0.2s;
+        }
+        .auth-card .form-control:focus {
+            border-color: #0d6efd;
+            box-shadow: 0 0 0 0.2rem rgba(13,110,253,0.15);
+        }
+        .auth-card .btn-primary {
+            border-radius: 30px;
+            padding: 10px 20px;
+            font-weight: 600;
+            width: 100%;
+        }
+        .auth-card .auth-links {
+            text-align: center;
+            margin-top: 15px;
+            font-size: 0.9rem;
+        }
+        .auth-card .auth-links a {
+            color: #0d6efd;
+            text-decoration: none;
+        }
+        .auth-card .auth-links a:hover {
+            text-decoration: underline;
+        }
+        .messages {
+            margin-bottom: 15px;
+        }
+        @media (max-width: 480px) {
+            .auth-card {
+                padding: 20px 16px;
+            }
+            .auth-card .logo i {
+                font-size: 36px;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <!-- Logo / Brand -->
+            <div class="logo">
+                <i class="fas fa-hospital"></i>
+                <h4>Eagle IMS</h4>
+                <p class="text-muted small">Inventory Management System</p>
+            </div>
+
+            <!-- Messages (success/error) -->
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Content block -->
+            {% block auth_content %}{% endblock %}
+
+            <!-- Footer link -->
+            <div class="auth-links">
+                <small>&copy; {% now "Y" %} Eagle Hospital. All rights reserved.</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

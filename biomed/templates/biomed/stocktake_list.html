@@ -1,0 +1,122 @@
+{% extends 'partials/base.html' %}
+{% block title %}Equipment Stock Takes{% endblock %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <!-- Filter Sidebar -->
+        <div class="col-md-3">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <i class="fas fa-filter"></i> Filter Stock Takes
+                </div>
+                <div class="card-body">
+                    <form method="get" action="{% url 'biomed:stocktake_list' %}">
+                        <div class="form-group">
+                            <label>Search Equipment</label>
+                            <input type="text" name="q" class="form-control" placeholder="Equipment name" value="{{ query }}">
+                        </div>
+                        <div class="form-group">
+                            <label>Condition</label>
+                            <select name="condition" class="form-control">
+                                <option value="">All</option>
+                                {% for condition_code, condition_label in condition_choices %}
+                                    <option value="{{ condition_code }}" {% if condition_code == condition_filter %}selected{% endif %}>
+                                        {{ condition_label }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-search"></i> Apply</button>
+                        <a href="{% url 'biomed:stocktake_list' %}" class="btn btn-secondary btn-block"><i class="fas fa-times"></i> Reset</a>
+                    </form>
+                </div>
+            </div>
+            <div class="card mt-3 shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <i class="fas fa-plus-circle"></i> New Stock Take
+                </div>
+                <div class="card-body">
+                    <a href="{% url 'biomed:stocktake_create' %}" class="btn btn-success btn-block">
+                        <i class="fas fa-plus"></i> Record Stock Take
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- StockTake List -->
+        <div class="col-md-9">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <span><i class="fas fa-clipboard-list"></i> Stock Takes</span>
+                    <span class="badge badge-light">{{ stocktakes.paginator.count }} total</span>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Equipment</th>
+                                    <th>Date</th>
+                                    <th>Condition</th>
+                                    <th>Performed By</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for st in stocktakes %}
+                                <tr>
+                                    <td>{{ st.equipment.equipment_name }}</td>
+                                    <td>{{ st.date|date:"Y-m-d" }}</td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if st.condition == 'Good' %}badge-success
+                                            {% elif st.condition == 'Damaged' %}badge-warning
+                                            {% elif st.condition == 'Missing' %}badge-danger
+                                            {% else %}badge-secondary{% endif %}">
+                                            {{ st.condition }}
+                                        </span>
+                                    </td>
+                                    <td>{{ st.performed_by.username|default:"-" }}</td>
+                                    <td>
+                                        <a href="{% url 'biomed:stocktake_detail' st.pk %}" class="btn btn-sm btn-info" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        <a href="{% url 'biomed:stocktake_edit' st.pk %}" class="btn btn-sm btn-warning" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a href="{% url 'biomed:stocktake_delete' st.pk %}" class="btn btn-sm btn-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr><td colspan="5" class="text-center">No stock takes found.</td></tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if stocktakes.has_other_pages %}
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center">
+                            {% if stocktakes.has_previous %}
+                                <li class="page-item"><a class="page-link" href="?page=1{% if query %}&q={{ query }}{% endif %}{% if condition_filter %}&condition={{ condition_filter }}{% endif %}">First</a></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ stocktakes.previous_page_number }}{% if query %}&q={{ query }}{% endif %}{% if condition_filter %}&condition={{ condition_filter }}{% endif %}">Prev</a></li>
+                            {% endif %}
+                            <li class="page-item active"><span class="page-link">Page {{ stocktakes.number }} of {{ stocktakes.paginator.num_pages }}</span></li>
+                            {% if stocktakes.has_next %}
+                                <li class="page-item"><a class="page-link" href="?page={{ stocktakes.next_page_number }}{% if query %}&q={{ query }}{% endif %}{% if condition_filter %}&condition={{ condition_filter }}{% endif %}">Next</a></li>
+                                <li class="page-item"><a class="page-link" href="?page={{ stocktakes.paginator.num_pages }}{% if query %}&q={{ query }}{% endif %}{% if condition_filter %}&condition={{ condition_filter }}{% endif %}">Last</a></li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

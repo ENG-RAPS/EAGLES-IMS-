@@ -1,0 +1,87 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}Stock Out Report{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-arrow-up text-danger"></i> Stock Out Report</h2>
+        <button class="btn btn-outline-secondary" onclick="window.print()"><i class="fas fa-print"></i> Print</button>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col-md-4">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h5>Total Quantity Issued</h5>
+                    <h2>{{ total_quantity }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h5>Total Value</h5>
+                    <h2>{{ total_value|floatformat:2 }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <input type="date" name="start_date" class="form-control" value="{{ start_date }}">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="end_date" class="form-control" value="{{ end_date }}">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" name="search" class="form-control" placeholder="Search product..." value="{{ search }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Filter</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Product</th>
+                            <th>Quantity</th>
+                            <th>Unit Price</th>
+                            <th>Total</th>
+                            <th>Department</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for txn in page_obj %}
+                        <tr>
+                            <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
+                            <td>{{ txn.transaction_date|date:"Y-m-d H:i" }}</td>
+                            <td>{{ txn.product.name }}</td>
+                            <td>{{ txn.quantity }}</td>
+                            <td>KSH{{ txn.unit_price|floatformat:2 }}</td>
+                            <td>KSH{{ txn.total_price|floatformat:2 }}</td>
+                            <td>{{ txn.department.name|default:"-" }}</td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="7" class="text-center">No stock out records.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% include 'partials/pagination.html' with page_obj=page_obj %}
+        </div>
+    </div>
+</div>
+{% endblock %}
