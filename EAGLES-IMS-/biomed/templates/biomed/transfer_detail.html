@@ -1,0 +1,29 @@
+{% extends 'partials/base.html' %}
+{% block title %}Transfer Details{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-info text-white">
+            <h4>Transfer Details</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Equipment:</strong> {{ transfer.equipment.equipment_name }}</p>
+            <p><strong>From Branch:</strong> {{ transfer.from_branch.name }}</p>
+            <p><strong>To Branch:</strong> {{ transfer.to_branch.name }}</p>
+            <p><strong>Requested by:</strong> {{ transfer.requested_by.username|default:"-" }}</p>
+            <p><strong>Approved by:</strong> {{ transfer.approved_by.username|default:"-" }}</p>
+            <p><strong>Status:</strong> {{ transfer.get_status_display }}</p>
+            <p><strong>Request Date:</strong> {{ transfer.transfer_date }}</p>
+            <p><strong>Remarks:</strong> {{ transfer.remarks|default:"-" }}</p>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'biomed:transfer_list' %}" class="btn btn-secondary">Back to List</a>
+            {% if transfer.status == 'PENDING' %}
+                <a href="{% url 'biomed:transfer_approve' transfer.pk %}" class="btn btn-success">Approve</a>
+                <a href="{% url 'biomed:transfer_reject' transfer.pk %}" class="btn btn-danger">Reject</a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

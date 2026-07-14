@@ -1,0 +1,226 @@
+{% load static %}
+<div class="sidebar bg-dark text-white d-flex flex-column" 
+     style="width: 250px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; padding-top: 60px; overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
+    
+    <!-- Brand -->
+    <div class="sidebar-brand text-center py-3 border-bottom border-secondary">
+        <h5><i class="fas fa-hospital text-info"></i> Eagle IMS</h5>
+        <small class="text-muted">{{ user.profile.branch.name|default:"Main Branch" }}</small>
+    </div>
+
+    <!-- Navigation -->
+    <ul class="nav flex-column mt-3">
+        
+        <!-- Dashboard -->
+        <li class="nav-item">
+            <a class="nav-link text-white {% if request.resolver_match.url_name == 'dashboard-index' %}active bg-info{% endif %}" 
+               href="{% url 'dashboard-index' %}">
+                <i class="fas fa-tachometer-alt"></i> Dashboard
+            </a>
+        </li>
+
+        <!-- ===== STORE DROPDOWN ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'STORE_ADMIN' or user.profile.role == 'STORE_OFFICER' or user.profile.role == 'BRANCH_ADMIN' or user.profile.role == 'MAIN_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white dropdown-toggle" href="#" data-toggle="collapse" data-target="#storeMenu">
+                    <i class="fas fa-boxes"></i> Store
+                </a>
+                <div class="collapse {% if 'store' in request.path %}show{% endif %}" id="storeMenu">
+                    <ul class="nav flex-column ml-3">
+                        <!-- Core Store pages -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'products' in request.path and not 'report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:product_list' %}">
+                                <i class="fas fa-cube"></i> Products
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'category' in request.path and not 'report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:category_list' %}">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'supplier' in request.path and not 'supplier_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:supplier_list' %}">
+                                <i class="fas fa-truck"></i> Suppliers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'transaction' in request.path and not 'report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:transaction_list' %}">
+                                <i class="fas fa-exchange-alt"></i> Transactions
+                            </a>
+                        </li>
+
+                        <!-- ===== STORE REPORTS ===== -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'products_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:products_report' %}">
+                                <i class="fas fa-file-alt"></i> Products Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'low_stock_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:low_stock_report' %}">
+                                <i class="fas fa-exclamation-triangle"></i> Low Stock Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'stock_movement_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:stock_movement_report' %}">
+                                <i class="fas fa-arrow-right"></i> Stock Movement Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'stock_in_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:stock_in_report' %}">
+                                <i class="fas fa-arrow-down"></i> Stock In Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'stock_out_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:stock_out_report' %}">
+                                <i class="fas fa-arrow-up"></i> Stock Out Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'department_consumption_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:department_consumption_report' %}">
+                                <i class="fas fa-building"></i> Department Consumption Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'supplier_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'store:supplier_report' %}">
+                                <i class="fas fa-truck"></i> Supplier Report
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endif %}
+        {% endif %}
+
+        <!-- ===== BIOMED DROPDOWN ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'BIOMED_ADMIN' or user.profile.role == 'BIOMED_TECHNICIAN' or user.profile.role == 'BRANCH_ADMIN' or user.profile.role == 'MAIN_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white dropdown-toggle" href="#" data-toggle="collapse" data-target="#biomedMenu">
+                    <i class="fas fa-microscope"></i> Biomed
+                </a>
+                <div class="collapse {% if 'biomed' in request.path %}show{% endif %}" id="biomedMenu">
+                    <ul class="nav flex-column ml-3">
+                        <!-- Core Biomed pages -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'equipment' in request.path and not 'report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'biomed:equipment_list' %}">
+                                <i class="fas fa-cogs"></i> Equipment
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small" href="{% url 'biomed:ppm_list' %}">
+                                <i class="fas fa-calendar-check"></i> PPM
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small" href="{% url 'biomed:stocktake_list' %}">
+                                <i class="fas fa-clipboard-list"></i> Stock Take
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small" href="{% url 'biomed:transfer_list' %}">
+                                <i class="fas fa-exchange-alt"></i> Transfers
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small" href="{% url 'biomed:category_list' %}">
+                                <i class="fas fa-tags"></i> Categories
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small" href="{% url 'store:supplier_list' %}">
+                                <i class="fas fa-truck"></i> Suppliers
+                            </a>
+                        </li>
+
+                        <!-- ===== BIOMED REPORTS ===== -->
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'equipment_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'biomed:equipment_report' %}">
+                                <i class="fas fa-file-alt"></i> Equipment Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'equipment_by_status_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'biomed:equipment_by_status_report' %}">
+                                <i class="fas fa-chart-pie"></i> Equipment by Status Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'ppm_schedule_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'biomed:ppm_schedule_report' %}">
+                                <i class="fas fa-calendar-check"></i> PPM Schedule Report
+                            </a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link text-white-50 small {% if 'equipment_by_department_report' in request.path %}active bg-info{% endif %}" 
+                               href="{% url 'biomed:equipment_by_department_report' %}">
+                                <i class="fas fa-building"></i> Equipment by Department Report
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </li>
+            {% endif %}
+        {% endif %}
+
+        <!-- ===== USER MANAGEMENT (Admin only) ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:list' %}">
+                    <i class="fas fa-users-cog"></i> User Management
+                </a>
+            </li>
+            {% endif %}
+        {% endif %}
+        <!-- ===== BRANCH MANAGEMENT (Admin only) ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:branch_list' %}">
+                    <i class="fas fa-store"></i> Branch Management
+                </a>
+            </li>
+            {% endif %}
+        {% endif %}
+
+  <!-- ===== DEPARTMENT MANAGEMENT (Admin only) ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:department_list' %}">
+                    <i class="fas fa-building"></i> Department Management
+                </a>
+            </li>
+            {% endif %}
+        {% endif %}
+
+
+        <!-- ===== MY PROFILE ===== -->
+        <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'user:profile' %}">
+                <i class="fas fa-user-cog"></i> My Profile
+            </a>
+        </li>
+
+        <!-- ===== INBOX ===== -->
+        <li class="nav-item">
+            <a class="nav-link text-white" href="{% url 'notifications:inbox' %}">
+                <i class="fas fa-bell"></i> Inbox
+            </a>
+        </li>
+    </ul>
+</div>

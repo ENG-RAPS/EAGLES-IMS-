@@ -1,0 +1,51 @@
+{% extends 'partials/base.html' %}
+{% block title %}Equipment Details{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-info text-white">
+            <h4>{{ equipment.equipment_name }}</h4>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Serial Number:</strong> {{ equipment.serial_number|default:"-" }}</p>
+                    <p><strong>Asset Tag:</strong> {{ equipment.asset_tag|default:"-" }}</p>
+                    <p><strong>Model:</strong> {{ equipment.model_number|default:"-" }}</p>
+                    <p><strong>Manufacturer:</strong> {{ equipment.manufacturer|default:"-" }}</p>
+                    <p><strong>Status:</strong> {{ equipment.status }}</p>
+                    <p><strong>Location:</strong> {{ equipment.location|default:"-" }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Purchase Date:</strong> {{ equipment.purchase_date|default:"-" }}</p>
+                    <p><strong>Purchase Cost:</strong> {{ equipment.purchase_cost|default:"-" }}</p>
+                    <p><strong>Warranty Expiry:</strong> {{ equipment.warranty_expiry|default:"-" }}</p>
+                    <p><strong>Branch:</strong> {{ equipment.branch.name }}</p>
+                    <p><strong>Department:</strong> {{ equipment.department.name|default:"-" }}</p>
+                </div>
+            </div>
+            <hr>
+            <h5>PPM History</h5>
+            <ul>
+                {% for ppm in ppms %}
+                <li>{{ ppm.ppm_date }} - {{ ppm.status }}</li>
+                {% empty %}
+                <li>No PPM records.</li>
+                {% endfor %}
+            </ul>
+            <h5>Stock Takes</h5>
+            <ul>
+                {% for st in stocktakes %}
+                <li>{{ st.date }} - {{ st.condition }}</li>
+                {% empty %}
+                <li>No stock takes.</li>
+                {% endfor %}
+            </ul>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'biomed:equipment_list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'biomed:equipment_edit' equipment.pk %}" class="btn btn-warning">Edit</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

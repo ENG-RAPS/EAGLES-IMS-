@@ -1,0 +1,24 @@
+body{
+    background: rgb(230, 227, 227);
+}
+.my-card:hover{
+    transform: scale(1.1);
+    transition: 0.2s ease-in-out;
+}
+/* Sidebar link hover */
+.sidebar .nav-link:hover {
+    background: #495057;
+    border-radius: 5px;
+}
+.sidebar .nav-link.active {
+    background: #17a2b8 !important;
+    border-radius: 5px;
+    color: white !important;
+}
+.sidebar .dropdown-toggle::after {
+    float: right;
+    margin-top: 8px;
+}
+.sidebar .nav-link.text-white-50:hover {
+    color: #fff !important;
+}

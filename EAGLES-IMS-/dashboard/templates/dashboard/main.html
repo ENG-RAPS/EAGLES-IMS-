@@ -1,0 +1,733 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Eagle IMS{% endblock %}
+
+{% block extra_css %}
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+<style>
+    body { background: #f0f2f5; }
+
+    .dashboard-header {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        margin-bottom: 1.5rem;
+    }
+    .dashboard-header .user-info h4 {
+        font-weight: 700;
+        color: #1a1a2e;
+        margin: 0;
+    }
+    .dashboard-header .status-badge {
+        font-size: 0.75rem;
+        color: #22c55e;
+        background: #dcfce7;
+        padding: 0.2rem 0.75rem;
+        border-radius: 30px;
+        font-weight: 500;
+    }
+    .dashboard-header .date-time {
+        color: #6c7a89;
+        font-size: 0.9rem;
+    }
+
+    .stat-card {
+        border: none !important;
+        border-radius: 16px !important;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.10) !important;
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 100%;
+        padding: 1.25rem 1.5rem;
+        color: #fff !important;
+    }
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.18) !important;
+    }
+    .stat-card .stat-icon {
+        font-size: 2.5rem;
+        opacity: 0.25;
+        line-height: 1;
+    }
+    .stat-card .stat-number {
+        font-size: 2.4rem;
+        font-weight: 700;
+        line-height: 1.2;
+        color: #fff !important;
+    }
+    .stat-card .stat-label {
+        font-size: 0.85rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        opacity: 0.9;
+        margin-top: 0.2rem;
+    }
+    .stat-card .stat-link {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: rgba(255,255,255,0.9) !important;
+        text-decoration: none;
+        border-bottom: 1px dashed rgba(255,255,255,0.3);
+    }
+    .stat-card .stat-link:hover {
+        border-bottom-color: #fff;
+        color: #fff !important;
+    }
+
+    .activity-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1rem 1.25rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        text-align: center;
+        height: 100%;
+        transition: transform 0.2s;
+    }
+    .activity-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+    .activity-card .activity-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .activity-card .activity-number { font-size: 1.8rem; font-weight: 700; color: #1a1a2e; }
+    .activity-card .activity-label { font-size: 0.8rem; color: #6c7a89; font-weight: 500; }
+
+    .table-card {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        height: 100%;
+    }
+    .table-card .table-title { font-weight: 600; color: #1a1a2e; font-size: 1rem; margin-bottom: 1rem; }
+    .table-card table th {
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #6c7a89;
+        font-weight: 600;
+        border-bottom: 2px solid #eef2f7;
+    }
+    .table-card table td {
+        font-size: 0.9rem;
+        color: #1a1a2e;
+        padding: 0.6rem 0.4rem;
+        border-bottom: 1px solid #f0f2f5;
+    }
+
+    .section-title {
+        font-weight: 600;
+        color: #1a1a2e;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
+        padding-left: 0.75rem;
+        border-left: 4px solid #0d6efd;
+    }
+
+    .recent-list {
+        max-height: 200px;
+        overflow-y: auto;
+    }
+    .recent-list::-webkit-scrollbar { width: 4px; }
+    .recent-list::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+    .recent-list .list-item {
+        border-bottom: 1px solid #f0f2f5;
+        padding: 0.5rem 0;
+        display: flex;
+        align-items: center;
+    }
+    .recent-list .list-item:last-child { border-bottom: none; }
+    .recent-list .list-item .badge-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 10px;
+        flex-shrink: 0;
+    }
+
+    .chart-wrapper {
+        background: #fff;
+        border-radius: 16px;
+        padding: 1.25rem 1.5rem;
+        box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+        height: 100%;
+    }
+    .chart-wrapper .chart-title { font-weight: 600; color: #1a1a2e; font-size: 1rem; margin-bottom: 1rem; }
+
+    /* Colour classes */
+    .bg-blue { background: #4e73df; }
+    .bg-green { background: #1cc88a; }
+    .bg-yellow { background: #f6c23e; color: #1a1a2e; }
+    .bg-red { background: #e74a3b; }
+    .bg-purple { background: #858796; }
+    .bg-orange { background: #f8a84e; }
+    .bg-teal { background: #20c9a6; }
+    .bg-pink { background: #e83e8c; }
+
+    @media (max-width: 768px) {
+        .stat-card .stat-number { font-size: 1.8rem; }
+        .stat-card { padding: 1rem 1.25rem; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 px-lg-4">
+
+    <!-- ===== TOP HEADER ===== -->
+    <div class="dashboard-header">
+        <div class="row align-items-center">
+            <div class="col-md-6">
+                <div class="user-info d-flex align-items-center gap-3">
+                    <div>
+                        <h4><i class="fas fa-user-circle me-2 text-primary"></i> {{ user.get_full_name|default:user.username }}</h4>
+                        <div class="d-flex align-items-center gap-2 mt-1">
+                            <span class="status-badge"><i class="fas fa-circle me-1" style="font-size: 0.4rem;"></i> Available</span>
+                            <span class="text-muted small">| {{ user.profile.get_role_display|default:user_role }}</span>
+                            {% if branch %}
+                            <span class="text-muted small">| {{ branch.name }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 text-md-end mt-2 mt-md-0">
+                <div class="date-time">
+                    <i class="far fa-calendar-alt me-1"></i> {{ now|date:"d M Y" }}
+                    <span class="mx-2">|</span>
+                    <i class="far fa-clock me-1"></i> {{ now|time:"g:i A" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===== STORE SUMMARY – COLOURFUL CARDS (inline style fallback) ===== -->
+    {% if show_main_admin or show_store or show_branch_admin %}
+    <div class="section-title mt-3">
+        <i class="fas fa-boxes text-primary me-2"></i> Inventory Summary
+    </div>
+    <div class="row g-3 mb-4">
+        {% if show_main_admin %}
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="background: #4e73df;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ total_products|default:0 }}</div>
+                            <div class="stat-label">Quantity in hand</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-cubes"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="background: #1cc88a;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ total_transactions|default:0 }}</div>
+                            <div class="stat-label">Total Transactions</div>
+                            <a href="{% url 'store:transaction_list' %}" class="stat-link">View all →</a>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-exchange-alt"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="background: #f6c23e; color: #1a1a2e;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number" style="color: #1a1a2e;">{{ low_stock_count|default:0 }}</div>
+                            <div class="stat-label">Low Stock Items</div>
+                            {% if low_stock_count > 0 %}
+                                <a href="{% url 'store:low_stock_report' %}" class="stat-link" style="color: #1a1a2e; border-bottom-color: rgba(0,0,0,0.3);">View →</a>
+                            {% endif %}
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="background: #e74a3b;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ pending_approvals|default:0 }}</div>
+                            <div class="stat-label">Pending Approvals</div>
+                            {% if pending_approvals > 0 %}
+                                <a href="{% url 'store:transaction_list' %}?status=PENDING" class="stat-link">Review →</a>
+                            {% endif %}
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-clock"></i></div>
+                    </div>
+                </div>
+            </div>
+        {% elif show_store or show_branch_admin %}
+            <div class="col-md-4 col-sm-6">
+                <div class="stat-card" style="background: #4e73df;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ product_count|default:0 }}</div>
+                            <div class="stat-label">Quantity in hand</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-cubes"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="stat-card" style="background: #1cc88a;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ total_transactions|default:0 }}</div>
+                            <div class="stat-label">Total Transactions</div>
+                            <a href="{% url 'store:transaction_list' %}" class="stat-link">View →</a>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-exchange-alt"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="stat-card" style="background: #f6c23e; color: #1a1a2e;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number" style="color: #1a1a2e;">{{ low_stock_count|default:0 }}</div>
+                            <div class="stat-label">Low Stock Items</div>
+                            {% if low_stock_count > 0 %}
+                                <a href="{% url 'store:low_stock_report' %}" class="stat-link" style="color: #1a1a2e; border-bottom-color: rgba(0,0,0,0.3);">View →</a>
+                            {% endif %}
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- ===== ACTIVITY CARDS ===== -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3 col-sm-6">
+            <div class="activity-card">
+                <div class="activity-icon text-primary"><i class="fas fa-box"></i></div>
+                <div class="activity-number">{{ total_products|default:0 }}</div>
+                <div class="activity-label">Total Items</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="activity-card">
+                <div class="activity-icon text-success"><i class="fas fa-arrow-down"></i></div>
+                <div class="activity-number">{{ stock_in_count|default:0 }}</div>
+                <div class="activity-label">Stock In</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="activity-card">
+                <div class="activity-icon text-warning"><i class="fas fa-arrow-up"></i></div>
+                <div class="activity-number">{{ stock_out_count|default:0 }}</div>
+                <div class="activity-label">Stock Out</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-sm-6">
+            <div class="activity-card">
+                <div class="activity-icon text-danger"><i class="fas fa-hourglass-half"></i></div>
+                <div class="activity-number">{{ pending_approvals|default:0 }}</div>
+                <div class="activity-label">Pending</div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- ===== BIOMED ===== -->
+    {% if show_main_admin or show_biomed or show_branch_admin %}
+    <div class="section-title mt-3">
+        <i class="fas fa-microscope text-success me-2"></i> Biomed Summary
+    </div>
+    <div class="row g-3 mb-4">
+        {% if show_main_admin %}
+            <div class="col-md-2 col-sm-6">
+                <div class="stat-card" style="background: #1cc88a;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ total_equipment|default:0 }}</div>
+                            <div class="stat-label">Total Equipment</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-cogs"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <div class="stat-card" style="background: #20c9a6;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ working_count|default:0 }}</div>
+                            <div class="stat-label">Working</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <div class="stat-card" style="background: #e74a3b;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ faulty_count|add:under_repair_count|default:0 }}</div>
+                            <div class="stat-label">Faulty / Repair</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <div class="stat-card" style="background: #f8a84e;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ upcoming_ppm_count|default:0 }}</div>
+                            <div class="stat-label">Pending / Upcoming PPM</div>
+                            {% if upcoming_ppm_count > 0 %}
+                                <a href="{% url 'biomed:ppm_list' %}?status=Pending" class="stat-link">View →</a>
+                            {% endif %}
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <div class="stat-card" style="background: #e74a3b;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ overdue_ppm_count|default:0 }}</div>
+                            <div class="stat-label">Overdue PPM</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-exclamation-circle"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-2 col-sm-6">
+                <div class="stat-card" style="background: #858796;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ pending_transfers|default:0 }}</div>
+                            <div class="stat-label">Pending Transfers</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-exchange-alt"></i></div>
+                    </div>
+                </div>
+            </div>
+        {% elif show_biomed or show_branch_admin %}
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="background: #1cc88a;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ total_equipment|default:0 }}</div>
+                            <div class="stat-label">Total Equipment</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-cogs"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="background: #20c9a6;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ working_count|default:0 }}</div>
+                            <div class="stat-label">Working</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-check-circle"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="background: #e74a3b;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ faulty_count|add:under_repair_count|default:0 }}</div>
+                            <div class="stat-label">Faulty / Repair</div>
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-tools"></i></div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 col-sm-6">
+                <div class="stat-card" style="background: #f8a84e;">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <div class="stat-number">{{ pending_ppm|default:0 }}</div>
+                            <div class="stat-label">Pending PPM</div>
+                            {% if pending_ppm > 0 %}
+                                <a href="{% url 'biomed:ppm_list' %}?status=Pending" class="stat-link">View →</a>
+                            {% endif %}
+                        </div>
+                        <div class="stat-icon"><i class="fas fa-calendar-check"></i></div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ===== CHARTS ===== -->
+    <div class="row g-4 mb-4">
+        {% if chart_data.category_labels %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-pie text-primary me-2"></i> Products by Category</div>
+                <canvas id="categoryChart" height="200"></canvas>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-pie text-primary me-2"></i> Products by Category</div>
+                <p class="text-muted text-center py-4">No data available.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if chart_data.movement_months %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-bar text-success me-2"></i> Stock Movement (6 months)</div>
+                <canvas id="movementChart" height="200"></canvas>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-bar text-success me-2"></i> Stock Movement (6 months)</div>
+                <p class="text-muted text-center py-4">No transaction data.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="row g-4 mb-4">
+        {% if chart_data.eq_labels %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-pie text-info me-2"></i> Equipment Status</div>
+                <canvas id="equipmentStatusChart" height="200"></canvas>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-pie text-info me-2"></i> Equipment Status</div>
+                <p class="text-muted text-center py-4">No equipment data.</p>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if chart_data.ppm_labels %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-pie text-warning me-2"></i> PPM Status</div>
+                <canvas id="ppmStatusChart" height="200"></canvas>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-pie text-warning me-2"></i> PPM Status</div>
+                <p class="text-muted text-center py-4">No PPM data.</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% if show_main_admin %}
+    <div class="row g-4 mb-4">
+        {% if chart_data.low_stock_labels %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-bar text-danger me-2"></i> Top 5 Low Stock Items</div>
+                <canvas id="lowStockChart" height="200"></canvas>
+            </div>
+        </div>
+        {% endif %}
+        {% if chart_data.dept_labels %}
+        <div class="col-md-6">
+            <div class="chart-wrapper">
+                <div class="chart-title"><i class="fas fa-chart-bar text-secondary me-2"></i> Equipment by Department</div>
+                <canvas id="deptChart" height="200"></canvas>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    <!-- ===== RECENT ACTIVITY ===== -->
+    {% if recent_transactions %}
+    <div class="row g-4 mb-4">
+        <div class="col-12">
+            <div class="table-card">
+                <div class="table-title"><i class="fas fa-history text-muted me-2"></i> Recent Activity</div>
+                <div class="recent-list">
+                    {% for txn in recent_transactions|slice:":6" %}
+                    <div class="list-item">
+                        <span class="badge-dot" style="background: {% if txn.transaction_type == 'RECEIVE' %}#1cc88a{% else %}#e74a3b{% endif %};"></span>
+                        <span class="flex-grow-1">{{ txn.product.name }}</span>
+                        <span class="badge bg-light text-dark me-2">{{ txn.get_transaction_type_display }}</span>
+                        <span class="text-muted small">{{ txn.transaction_date|date:"d/m/Y H:i" }}</span>
+                    </div>
+                    {% empty %}
+                    <div class="text-muted text-center py-3">No recent activity.</div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<!-- ========== CHART.JS SCRIPTS ========== -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const chartData = {{ chart_data_json|safe }};
+
+        function createChart(ctxId, config) {
+            const ctx = document.getElementById(ctxId);
+            if (!ctx) return;
+            new Chart(ctx, config);
+        }
+
+        // 1. Category Pie Chart
+        if (chartData.category_labels && chartData.category_data) {
+            createChart('categoryChart', {
+                type: 'pie',
+                data: {
+                    labels: JSON.parse(chartData.category_labels),
+                    datasets: [{
+                        data: JSON.parse(chartData.category_data),
+                        backgroundColor: ['#4e73df', '#1cc88a', '#36b9cc', '#f6c23e', '#e74a3b', '#858796']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // 2. Stock Movement Bar Chart
+        if (chartData.movement_months) {
+            createChart('movementChart', {
+                type: 'bar',
+                data: {
+                    labels: JSON.parse(chartData.movement_months),
+                    datasets: [
+                        {
+                            label: 'Stock In',
+                            data: JSON.parse(chartData.received_qty),
+                            backgroundColor: 'rgba(28, 200, 138, 0.7)',
+                            borderColor: '#1cc88a',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Stock Out',
+                            data: JSON.parse(chartData.issued_qty),
+                            backgroundColor: 'rgba(231, 74, 59, 0.7)',
+                            borderColor: '#e74a3b',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // 3. Equipment Status Pie
+        if (chartData.eq_labels) {
+            createChart('equipmentStatusChart', {
+                type: 'pie',
+                data: {
+                    labels: JSON.parse(chartData.eq_labels),
+                    datasets: [{
+                        data: JSON.parse(chartData.eq_data),
+                        backgroundColor: ['#1cc88a', '#e74a3b', '#f6c23e', '#36b9cc']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // 4. PPM Status Pie
+        if (chartData.ppm_labels) {
+            createChart('ppmStatusChart', {
+                type: 'pie',
+                data: {
+                    labels: JSON.parse(chartData.ppm_labels),
+                    datasets: [{
+                        data: JSON.parse(chartData.ppm_data),
+                        backgroundColor: ['#f6c23e', '#e74a3b', '#1cc88a', '#36b9cc']
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom' } }
+                }
+            });
+        }
+
+        // 5. Low Stock Chart (Main Admin)
+        if (chartData.low_stock_labels) {
+            createChart('lowStockChart', {
+                type: 'bar',
+                data: {
+                    labels: JSON.parse(chartData.low_stock_labels),
+                    datasets: [
+                        {
+                            label: 'Current Stock',
+                            data: JSON.parse(chartData.low_stock_qty),
+                            backgroundColor: 'rgba(231, 74, 59, 0.7)',
+                            borderColor: '#e74a3b',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Min Stock Level',
+                            data: JSON.parse(chartData.low_stock_min),
+                            backgroundColor: 'rgba(54, 185, 204, 0.7)',
+                            borderColor: '#36b9cc',
+                            borderWidth: 1
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'top' } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+
+        // 6. Equipment by Department (Main Admin)
+        if (chartData.dept_labels) {
+            createChart('deptChart', {
+                type: 'bar',
+                data: {
+                    labels: JSON.parse(chartData.dept_labels),
+                    datasets: [{
+                        label: 'Equipment Count',
+                        data: JSON.parse(chartData.dept_data),
+                        backgroundColor: 'rgba(78, 115, 223, 0.7)',
+                        borderColor: '#4e73df',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true } }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

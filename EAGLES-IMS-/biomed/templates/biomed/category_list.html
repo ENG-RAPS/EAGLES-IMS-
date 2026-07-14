@@ -1,0 +1,37 @@
+{% extends 'partials/base.html' %}
+{% block title %}Biomed Categories{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-info text-white d-flex justify-content-between">
+            <span><i class="fas fa-tags"></i> Equipment Categories</span>
+            <a href="{% url 'biomed:category_create' %}" class="btn btn-light btn-sm">Add Category</a>
+        </div>
+        <div class="card-body">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for cat in categories %}
+                    <tr>
+                        <td>{{ cat.name }}</td>
+                        <td>{{ cat.description|default:"-" }}</td>
+                        <td>
+                            <a href="{% url 'biomed:category_edit' cat.pk %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                            <a href="{% url 'biomed:category_delete' cat.pk %}" class="btn btn-sm btn-danger"><i class="fas fa-trash"></i></a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr><td colspan="3" class="text-center">No categories created yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,27 @@
+{% extends 'partials/base.html' %}
+{% block title %}PPM Details{% endblock %}
+{% block content %}
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-warning text-dark">
+            <h4>PPM Details</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Equipment:</strong> {{ ppm.equipment.equipment_name }}</p>
+            <p><strong>Serial Number:</strong> {{ ppm.serial_number|default:"-" }}</p>
+            <p><strong>Model:</strong> {{ ppm.model_number|default:"-" }}</p>
+            <p><strong>Location:</strong> {{ ppm.location|default:"-" }}</p>
+            <p><strong>Previous PPM:</strong> {{ ppm.previous_ppm_date|default:"-" }}</p>
+            <p><strong>PPM Date:</strong> {{ ppm.ppm_date }}</p>
+            <p><strong>Next PPM:</strong> {{ ppm.next_ppm_date }}</p>
+            <p><strong>Technician:</strong> {{ ppm.technician.username|default:"-" }}</p>
+            <p><strong>Status:</strong> {{ ppm.status }}</p>
+            <p><strong>Remarks:</strong> {{ ppm.remarks|default:"-" }}</p>
+        </div>
+        <div class="card-footer">
+            <a href="{% url 'biomed:ppm_list' %}" class="btn btn-secondary">Back to List</a>
+            <a href="{% url 'biomed:ppm_edit' ppm.pk %}" class="btn btn-warning">Edit</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
