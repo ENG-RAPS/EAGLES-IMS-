@@ -57,24 +57,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-
-# In settings.py gor the email configuration,
-# you can use the following code snippet to set up the email backend and related settings:
-# Email
-
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'sbrianrapando.security.com'    # Your email host
-EMAIL_PORT = 587                  # Your email port
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = config('sbrianrapando@gmail.com', default='')   # ✅ safe default # Your email address
-EMAIL_HOST_PASSWORD = config('Brian@0717cl', default='') #Your email password or app password
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER  # Default from email address
-
-# Twilio   for WhatsApp integration/sms
-TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')  # Your Twilio account SID
-TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN', default='')      # Your Twilio auth token
-TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER', default='')  # Your Twilio phone number
-TWILIO_WHATSAPP_NUMBER = config('TWILIO_WHATSAPP_NUMBER', default='')  # Your Twilio WhatsApp number
+APP_NUMBER = config('TWILIO_WHATSAPP_NUMBER', default='')  # Your Twilio WhatsApp number
 
 ROOT_URLCONF = 'inventoryproject.urls'
 
@@ -108,8 +91,10 @@ DATABASES = {
     }
 }
 
-DATABASES["default"] =dj_database_url.parse("postgresql://eagle_django_db_user:s7V33Eso8qcmVxKgSwEASt4dxeUFgDK1@dpg-d9ao0vmcjfls73d8dksg-a.virginia-postgres.render.com/eagle_django_db")
 
+DATABASES = {
+    'default': dj_database_url.config(default=f'sqlite:///{BASE_DIR}/db.sqlite3')
+}
 #postgresql://eagle_django_db_user:s7V33Eso8qcmVxKgSwEASt4dxeUFgDK1@dpg-d9ao0vmcjfls73d8dksg-a.virginia-postgres.render.com/eagle_django_db
 # Password validation
 # https://docs.djangoproject.com/en/3.1/ref/settings/#auth-password-validators
@@ -165,3 +150,17 @@ STATIC_ROOT = (BASE_DIR/"aset/")
 LOGIN_URL = 'user:login'
 LOGIN_REDIRECT_URL = 'dashboard-index'   # <-- must be exactly this
 LOGOUT_REDIRECT_URL = 'user:login'
+
+# Email
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
+EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
+EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
+EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
+EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default=EMAIL_HOST_USER)
+
+# Twilio   for WhatsApp integration/sms
+TWILIO_ACCOUNT_SID = config('TWILIO_ACCOUNT_SID', default='')  # Your Twilio account SID
+TWILIO_AUTH_TOKEN = config('TWILIO_AUTH_TOKEN', default='')      # Your Twilio auth token
+TWILIO_PHONE_NUMBER = config('TWILIO_PHONE_NUMBER', default='')  # Your Twilio phone number
