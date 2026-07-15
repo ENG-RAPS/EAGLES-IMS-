@@ -8,6 +8,7 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
 from django.conf import settings
+
 # Check for related records
 from user.models import Profile
 from store.models import Product, StockTransaction
@@ -38,7 +39,6 @@ def register(request):
             group, _ = Group.objects.get_or_create(name=default_role)
             new_user.groups.add(group)
 
-            # Optional: send email to admins (see below)
             messages.success(
                 request,
                 f'Account created for {new_user.username}. Please wait for admin approval before logging in.'
@@ -60,7 +60,7 @@ def activate_user(request, user_id):
         user.is_active = True
         user.save()
         messages.success(request, f'User {user.username} has been activated successfully.')
-    return redirect('user:list')   # <-- changed from 'user:user_list' to 'user:list'
+    return redirect('user:list')
 
 
 @login_required
@@ -73,7 +73,7 @@ def deactivate_user(request, user_id):
         user.is_active = False
         user.save()
         messages.success(request, f'User {user.username} has been deactivated.')
-    return redirect('user:list')   # <-- changed from 'user:user_list' to 'user:list'
+    return redirect('user:list')
 
 
 # ---------- PROFILE ----------
@@ -131,13 +131,15 @@ class CustomPasswordResetView(PasswordResetView):
 class CustomPasswordResetConfirmView(PasswordResetConfirmView):
     template_name = 'user/password_reset_confirm.html'
     success_url = reverse_lazy('user:password-reset-complete')
-    
-    # ---------- BRANCH MANAGEMENT (Admin only) ----------
+
+
+# ---------- BRANCH MANAGEMENT (Admin only) ----------
 @login_required
 @permission_required('user.view_branch', raise_exception=True)
 def branch_list(request):
     branches = Branch.objects.all().order_by('name')
     return render(request, 'user/branch_list.html', {'branches': branches})
+
 
 @login_required
 @permission_required('user.add_branch', raise_exception=True)
@@ -156,6 +158,7 @@ def branch_create(request):
             messages.error(request, 'Name and Location are required.')
     return render(request, 'user/branch_form.html', {'title': 'Add Branch'})
 
+
 @login_required
 @permission_required('user.change_branch', raise_exception=True)
 def branch_edit(request, branch_id):
@@ -170,6 +173,7 @@ def branch_edit(request, branch_id):
         messages.success(request, f'Branch "{branch.name}" updated successfully.')
         return redirect('user:branch_list')
     return render(request, 'user/branch_form.html', {'branch': branch, 'title': 'Edit Branch'})
+
 
 @login_required
 @permission_required('user.delete_branch', raise_exception=True)
@@ -198,20 +202,15 @@ def branch_delete(request, branch_id):
         'related_products': related_products,
         'related_equipment': related_equipment,
     })
-<<<<<<< HEAD
-    
-    
-=======
 
 
-
->>>>>>> 882b413e3115f175b32aa17ee2f6b8e8fba06cda
 # ---------- DEPARTMENT MANAGEMENT (Admin only) ----------
 @login_required
 @permission_required('user.view_department', raise_exception=True)
 def department_list(request):
     departments = Department.objects.select_related('branch').all().order_by('name')
     return render(request, 'user/department_list.html', {'departments': departments})
+
 
 @login_required
 @permission_required('user.add_department', raise_exception=True)
@@ -228,6 +227,7 @@ def department_create(request):
             messages.error(request, 'Name and Branch are required.')
     branches = Branch.objects.filter(status=True)
     return render(request, 'user/department_form.html', {'branches': branches, 'title': 'Add Department'})
+
 
 @login_required
 @permission_required('user.change_department', raise_exception=True)
@@ -248,6 +248,7 @@ def department_edit(request, department_id):
         'title': 'Edit Department'
     })
 
+
 @login_required
 @permission_required('user.delete_department', raise_exception=True)
 def department_delete(request, department_id):
@@ -256,8 +257,4 @@ def department_delete(request, department_id):
         department.delete()
         messages.success(request, f'Department "{department.name}" deleted.')
         return redirect('user:department_list')
-<<<<<<< HEAD
     return render(request, 'user/department_confirm_delete.html', {'department': department})
-=======
-    return render(request, 'user/department_confirm_delete.html', {'department': department})
->>>>>>> 882b413e3115f175b32aa17ee2f6b8e8fba06cda
