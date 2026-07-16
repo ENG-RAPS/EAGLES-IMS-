@@ -9,14 +9,14 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
 from django.conf import settings
-# user/views.py - At the top with other imports
-from .models import Profile, Branch, Department, ROLE_CHOICES  # 👈 ADD ROLE_CHOICES
+from django.utils import timezone
+
 # Check for related records
 from user.models import Profile
 from store.models import Product, StockTransaction
 from biomed.models import Equipment
 from .forms import CreateUserForm, UserUpdateForm, ProfileUpdateForm
-
+from .models import Profile, Branch, Department, TransferRequest, ROLE_CHOICES
 
 
 # ---------- USER REGISTRATION (with admin approval) ----------
@@ -278,8 +278,8 @@ def department_delete(request, department_id):
         return redirect('user:department_list')
     return render(request, 'user/department_confirm_delete.html', {'department': department})
 
-# user/views.py - Add this function
 
+# ---------- TRANSFER USER (Admin only) ----------
 @login_required
 @permission_required('user.change_profile', raise_exception=True)
 def transfer_user_branch(request, user_id):
@@ -333,30 +333,163 @@ def transfer_user_branch(request, user_id):
     }
     return render(request, 'user/transfer_branch.html', context)
 
-# user/views.py - User self-transfer
 
+# ---------- REQUEST BRANCH TRANSFER (User self-transfer) ----------
 @login_required
 def request_branch_transfer(request):
     """Allow user to request branch transfer"""
+    profile = request.user.profile
+    
     if request.method == 'POST':
         new_branch_id = request.POST.get('branch')
         reason = request.POST.get('reason', '')
         
         if new_branch_id:
-            new_branch = get_object_or_404(Branch, id=new_branch_id)
-            
-            # Create transfer request (you need a TransferRequest model)
-            # Or just update the branch directly if admin approves
-            request.user.profile.branch = new_branch
-            request.user.profile.save()
-            
-            messages.success(
-                request, 
-                f'Your branch has been updated to {new_branch.name}.'
-            )
-            return redirect('user:profile')
+            try:
+                new_branch = get_object_or_404(Branch, id=new_branch_id)
+                
+                # Check if already in this branch
+                if profile.branch and profile.branch.id == new_branch.id:
+                    messages.warning(request, f'You are already in {new_branch.name} branch.')
+                    return redirect('user:profile')
+                
+                # Check if there's already a pending request
+                existing_request = TransferRequest.objects.filter(
+                    user=request.user,
+                    status='PENDING'
+                ).first()
+                
+                if existing_request:
+                    messages.warning(
+                        request, 
+                        'You already have a pending transfer request. Please wait for it to be processed.'
+                    )
+                    return redirect('user:profile')
+                
+                # Create transfer request
+                TransferRequest.objects.create(
+                    user=request.user,
+                    from_branch=profile.branch,
+                    to_branch=new_branch,
+                    reason=reason
+                )
+                
+                messages.success(
+                    request, 
+                    f'Transfer request submitted to {new_branch.name}. Please wait for admin approval.'
+                )
+                return redirect('user:profile')
+            except Exception as e:
+                messages.error(request, f'Error submitting request: {str(e)}')
         else:
             messages.error(request, 'Please select a branch.')
     
     branches = Branch.objects.filter(status=True)
-    return render(request, 'user/request_transfer.html', {'branches': branches})
+    context = {
+        'branches': branches,
+        'current_branch': profile.branch,
+        'pending_request': TransferRequest.objects.filter(user=request.user, status='PENDING').first(),
+    }
+    return render(request, 'user/request_transfer.html', context)
+
+
+# ---------- TRANSFER REQUEST MANAGEMENT (Admin only) ----------
+@login_required
+@permission_required('user.change_profile', raise_exception=True)
+def transfer_requests_list(request):
+    """Admin view to see all pending transfer requests"""
+    # Get all pending requests
+    pending_requests = TransferRequest.objects.filter(status='PENDING').select_related('user', 'from_branch', 'to_branch')
+    
+    # Get all requests (for history)
+    all_requests = TransferRequest.objects.all().select_related('user', 'from_branch', 'to_branch', 'reviewed_by')
+    
+    # Filter by status
+    status_filter = request.GET.get('status')
+    if status_filter:
+        all_requests = all_requests.filter(status=status_filter)
+    
+    context = {
+        'pending_requests': pending_requests,
+        'all_requests': all_requests,
+        'status_filter': status_filter,
+        'pending_count': pending_requests.count(),
+        'total_count': all_requests.count(),
+    }
+    return render(request, 'user/transfer_requests_list.html', context)
+
+
+@login_required
+@permission_required('user.change_profile', raise_exception=True)
+def transfer_request_approve(request, request_id):
+    """Admin approves a transfer request"""
+    transfer = get_object_or_404(TransferRequest, id=request_id)
+    
+    if transfer.status != 'PENDING':
+        messages.warning(request, 'This request has already been processed.')
+        return redirect('user:transfer_requests')
+    
+    if request.method == 'POST':
+        try:
+            # Update user's branch
+            profile = transfer.user.profile
+            profile.branch = transfer.to_branch
+            profile.save()
+            
+            # Update transfer request
+            transfer.status = 'APPROVED'
+            transfer.reviewed_by = request.user
+            transfer.reviewed_at = timezone.now()
+            transfer.review_notes = request.POST.get('notes', '')
+            transfer.save()
+            
+            messages.success(
+                request, 
+                f'Transfer approved! {transfer.user.username} has been moved to {transfer.to_branch.name}.'
+            )
+        except Exception as e:
+            messages.error(request, f'Error approving transfer: {str(e)}')
+        
+        return redirect('user:transfer_requests')
+    
+    return render(request, 'user/transfer_request_review.html', {
+        'transfer': transfer,
+        'action': 'approve'
+    })
+
+
+@login_required
+@permission_required('user.change_profile', raise_exception=True)
+def transfer_request_reject(request, request_id):
+    """Admin rejects a transfer request"""
+    transfer = get_object_or_404(TransferRequest, id=request_id)
+    
+    if transfer.status != 'PENDING':
+        messages.warning(request, 'This request has already been processed.')
+        return redirect('user:transfer_requests')
+    
+    if request.method == 'POST':
+        transfer.status = 'REJECTED'
+        transfer.reviewed_by = request.user
+        transfer.reviewed_at = timezone.now()
+        transfer.review_notes = request.POST.get('notes', '')
+        transfer.save()
+        
+        messages.success(
+            request, 
+            f'Transfer rejected for {transfer.user.username}.'
+        )
+        return redirect('user:transfer_requests')
+    
+    return render(request, 'user/transfer_request_review.html', {
+        'transfer': transfer,
+        'action': 'reject'
+    })
+
+
+# ---------- GET PENDING TRANSFER COUNT (for sidebar badge) ----------
+def get_pending_transfer_count(request):
+    """Get count of pending transfer requests for sidebar badge"""
+    if request.user.is_authenticated and (request.user.is_superuser or request.user.profile.role == 'MAIN_ADMIN'):
+        return TransferRequest.objects.filter(status='PENDING').count()
+    return 0
