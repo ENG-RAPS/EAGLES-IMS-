@@ -1,0 +1,61 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}{% if action == 'approve' %}Approve{% else %}Reject{% endif %} Transfer Request{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header {% if action == 'approve' %}bg-success{% else %}bg-danger{% endif %} text-white">
+                    <h4 class="mb-0">
+                        <i class="fas {% if action == 'approve' %}fa-check{% else %}fa-times{% endif %}"></i>
+                        {% if action == 'approve' %}Approve{% else %}Reject{% endif %} Transfer Request
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <h6>Request Details:</h6>
+                        <p class="mb-1"><strong>User:</strong> {{ transfer.user.username }} ({{ transfer.user.email }})</p>
+                        <p class="mb-1"><strong>From:</strong> {{ transfer.from_branch.name|default:"Not Assigned" }}</p>
+                        <p class="mb-1"><strong>To:</strong> {{ transfer.to_branch.name }}</p>
+                        <p class="mb-0"><strong>Reason:</strong> {{ transfer.reason|default:"No reason provided" }}</p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Review Notes</label>
+                            <textarea name="notes" class="form-control" rows="3" 
+                                placeholder="Add any notes about this decision..."></textarea>
+                        </div>
+                        
+                        <hr>
+                        
+                        <div class="alert {% if action == 'approve' %}alert-success{% else %}alert-danger{% endif %}">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            {% if action == 'approve' %}
+                                <strong>Confirm:</strong> This will move {{ transfer.user.username }} to {{ transfer.to_branch.name }}.
+                            {% else %}
+                                <strong>Confirm:</strong> This will reject {{ transfer.user.username }}'s transfer request.
+                            {% endif %}
+                        </div>
+                        
+                        <div class="d-grid gap-2 d-sm-flex">
+                            <button type="submit" class="btn {% if action == 'approve' %}btn-success{% else %}btn-danger{% endif %} flex-grow-1">
+                                <i class="fas {% if action == 'approve' %}fa-check{% else %}fa-times{% endif %}"></i>
+                                {% if action == 'approve' %}Approve{% else %}Reject{% endif %} Request
+                            </button>
+                            <a href="{% url 'user:transfer_requests' %}" class="btn btn-secondary flex-grow-1">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

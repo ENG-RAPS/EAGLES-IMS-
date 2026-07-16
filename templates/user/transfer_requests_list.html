@@ -1,0 +1,164 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block title %}Transfer Requests{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2><i class="fas fa-exchange-alt"></i> Transfer Requests</h2>
+        <div>
+            <span class="badge bg-warning text-dark">Pending: {{ pending_count }}</span>
+            <span class="badge bg-info">Total: {{ total_count }}</span>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <form method="get" class="row g-2">
+                <div class="col-auto">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                        <option value="APPROVED" {% if status_filter == 'APPROVED' %}selected{% endif %}>Approved</option>
+                        <option value="REJECTED" {% if status_filter == 'REJECTED' %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="col-auto">
+                    <button type="submit" class="btn btn-secondary">Filter</button>
+                </div>
+                <div class="col-auto">
+                    <a href="{% url 'user:transfer_requests' %}" class="btn btn-outline-secondary">Clear</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Pending Requests -->
+    {% if pending_requests %}
+    <div class="card mb-4">
+        <div class="card-header bg-warning text-dark">
+            <h5 class="mb-0"><i class="fas fa-clock"></i> Pending Requests ({{ pending_requests.count }})</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>From</th>
+                            <th>To</th>
+                            <th>Requested</th>
+                            <th>Reason</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in pending_requests %}
+                        <tr>
+                            <td>
+                                <strong>{{ req.user.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ req.user.email }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ req.from_branch.name|default:"Not Assigned" }}</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-success">{{ req.to_branch.name }}</span>
+                            </td>
+                            <td>{{ req.requested_at|date:"d M Y H:i" }}</td>
+                            <td>
+                                <span class="text-muted small">{{ req.reason|truncatechars:50|default:"No reason provided" }}</span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'user:transfer_request_approve' req.id %}" class="btn btn-success">
+                                        <i class="fas fa-check"></i> Approve
+                                    </a>
+                                    <a href="{% url 'user:transfer_request_reject' req.id %}" class="btn btn-danger">
+                                        <i class="fas fa-times"></i> Reject
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-success">
+        <i class="fas fa-check-circle"></i> No pending transfer requests.
+    </div>
+    {% endif %}
+
+    <!-- All Requests History -->
+    <div class="card">
+        <div class="card-header bg-secondary text-white">
+            <h5 class="mb-0"><i class="fas fa-history"></i> Request History</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>User</th>
+                            <th>From → To</th>
+                            <th>Status</th>
+                            <th>Requested</th>
+                            <th>Reviewed</th>
+                            <th>Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for req in all_requests %}
+                        <tr>
+                            <td>
+                                <strong>{{ req.user.username }}</strong>
+                                <br>
+                                <small class="text-muted">{{ req.user.email }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-secondary">{{ req.from_branch.name|default:"None" }}</span>
+                                <i class="fas fa-arrow-right text-muted"></i>
+                                <span class="badge bg-primary">{{ req.to_branch.name }}</span>
+                            </td>
+                            <td>
+                                {% if req.status == 'PENDING' %}
+                                    <span class="badge bg-warning text-dark">Pending</span>
+                                {% elif req.status == 'APPROVED' %}
+                                    <span class="badge bg-success">Approved</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ req.requested_at|date:"d M Y H:i" }}</td>
+                            <td>
+                                {% if req.reviewed_by %}
+                                    {{ req.reviewed_by.username }}<br>
+                                    <small class="text-muted">{{ req.reviewed_at|date:"d M Y H:i" }}</small>
+                                {% else %}
+                                    <span class="text-muted">Not reviewed</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="text-muted small">{{ req.review_notes|truncatechars:30|default:"-" }}</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center py-3">
+                                <i class="fas fa-info-circle"></i> No transfer requests found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
