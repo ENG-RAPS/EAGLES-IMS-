@@ -1,5 +1,17 @@
 {% load static %}
-<div class="sidebar bg-dark text-white d-flex flex-column" 
+
+<!-- ===== SIDEBAR TOGGLE BUTTON (Mobile Only) ===== -->
+<div class="sidebar-toggle-btn d-md-none">
+    <button class="btn btn-dark" type="button" onclick="toggleSidebar()">
+        <i class="fas fa-bars"></i>
+    </button>
+</div>
+
+<!-- ===== SIDEBAR OVERLAY (Mobile Only) ===== -->
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
+
+<!-- ===== SIDEBAR - UNCHANGED FOR DESKTOP ===== -->
+<div class="sidebar bg-dark text-white d-flex flex-column" id="sidebar" 
      style="width: 250px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; padding-top: 60px; overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
     
     <!-- Brand -->
@@ -8,7 +20,7 @@
         <small class="text-muted">{% if user.is_authenticated %}{{ user.profile.branch.name|default:"Main Branch" }}{% else %}System{% endif %}</small>
     </div>
 
-    <!-- Navigation -->
+    <!-- Navigation - UNCHANGED -->
     <ul class="nav flex-column mt-3">
         
         <!-- Dashboard -->
@@ -28,7 +40,6 @@
                 </a>
                 <div class="collapse {% if 'store' in request.path %}show{% endif %}" id="storeMenu">
                     <ul class="nav flex-column ml-3">
-                        <!-- Core Store pages -->
                         <li class="nav-item">
                             <a class="nav-link text-white-50 small {% if 'products' in request.path and not 'report' in request.path %}active bg-info{% endif %}" 
                                href="{% url 'store:product_list' %}">
@@ -112,7 +123,6 @@
                 </a>
                 <div class="collapse {% if 'biomed' in request.path %}show{% endif %}" id="biomedMenu">
                     <ul class="nav flex-column ml-3">
-                        <!-- Core Biomed pages -->
                         <li class="nav-item">
                             <a class="nav-link text-white-50 small {% if 'equipment' in request.path and not 'report' in request.path %}active bg-info{% endif %}" 
                                href="{% url 'biomed:equipment_list' %}">
@@ -186,6 +196,7 @@
             </li>
             {% endif %}
         {% endif %}
+
         <!-- ===== BRANCH MANAGEMENT (Admin only) ===== -->
         {% if user.is_authenticated %}
             {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' %}
@@ -197,7 +208,7 @@
             {% endif %}
         {% endif %}
 
-         <!-- ===== DEPARTMENT MANAGEMENT (Admin only) ===== -->
+        <!-- ===== DEPARTMENT MANAGEMENT (Admin only) ===== -->
         {% if user.is_authenticated %}
             {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' %}
             <li class="nav-item">
@@ -208,6 +219,33 @@
             {% endif %}
         {% endif %}
 
+        <!-- ===== TRANSFER SECTION ===== -->
+        {% if user.is_authenticated %}
+            {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' or user.profile.role == 'BRANCH_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:list' %}">
+                    <i class="fas fa-exchange-alt"></i> Transfer Users
+                </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:request_transfer' %}">
+                    <i class="fas fa-arrow-right"></i> Request Transfer
+                </a>
+            </li>
+            <!-- ===== TRANSFER REQUESTS (Admin only) ===== -->
+            {% if user.is_superuser or user.profile.role == 'MAIN_ADMIN' or user.profile.role == 'BRANCH_ADMIN' %}
+            <li class="nav-item">
+                <a class="nav-link text-white" href="{% url 'user:transfer_requests' %}">
+                    <i class="fas fa-clipboard-list"></i> Transfer Requests
+                    {% if pending_transfer_count %}
+                        <span class="badge bg-danger float-right">{{ pending_transfer_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            {% endif %}
+        {% endif %}
+          
         <!-- ===== MY PROFILE ===== -->
         <li class="nav-item">
             <a class="nav-link text-white" href="{% url 'user:profile' %}">
@@ -223,3 +261,139 @@
         </li>
     </ul>
 </div>
+
+<!-- ===== MOBILE-ONLY STYLES & SCRIPTS ===== -->
+<style>
+    /* ===== DROPDOWN ARROW ON RIGHT END ===== */
+    .sidebar .dropdown-toggle::after {
+        float: right;
+        margin-top: 8px;
+        margin-left: auto;
+    }
+    
+    /* Fix for dropdown toggle to work with float */
+    .sidebar .dropdown-toggle {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .sidebar .dropdown-toggle i:first-child {
+        margin-right: 10px;
+    }
+    .sidebar .dropdown-toggle::after {
+        margin-left: auto;
+    }
+    
+    /* ===== ONLY FOR MOBILE ===== */
+    @media (max-width: 991px) {
+        /* Toggle button */
+        .sidebar-toggle-btn {
+            position: fixed;
+            top: 10px;
+            left: 10px;
+            z-index: 1060;
+        }
+        .sidebar-toggle-btn button {
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            background: #1a1a2e;
+            border: 2px solid #00d2ff;
+            color: #00d2ff;
+        }
+        
+        /* Sidebar slides in/out */
+        .sidebar {
+            transform: translateX(-100%);
+            transition: transform 0.3s ease-in-out;
+            width: 280px;
+            padding-top: 10px;
+        }
+        .sidebar.active {
+            transform: translateX(0);
+        }
+        
+        /* Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1040;
+        }
+        .sidebar-overlay.active {
+            display: block;
+        }
+        
+        /* Keep dropdowns working */
+        .sidebar .collapse {
+            position: relative;
+        }
+    }
+    
+    /* ===== DESKTOP ===== */
+    @media (min-width: 992px) {
+        .sidebar-toggle-btn {
+            display: none !important;
+        }
+        .sidebar-overlay {
+            display: none !important;
+        }
+        .sidebar {
+            transform: translateX(0) !important;
+        }
+    }
+</style>
+
+<script>
+    // ===== MOBILE TOGGLE ONLY =====
+    function toggleSidebar() {
+        if (window.innerWidth <= 991) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar) {
+                sidebar.classList.toggle('active');
+                if (overlay) {
+                    overlay.classList.toggle('active');
+                }
+                document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+            }
+        }
+    }
+    
+    // Close sidebar when clicking outside (mobile only)
+    document.addEventListener('click', function(event) {
+        if (window.innerWidth <= 991) {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.querySelector('.sidebar-toggle-btn button');
+            const overlay = document.getElementById('sidebarOverlay');
+            
+            if (sidebar && toggleBtn && !sidebar.contains(event.target) && !toggleBtn.contains(event.target)) {
+                if (sidebar.classList.contains('active')) {
+                    sidebar.classList.remove('active');
+                    if (overlay) overlay.classList.remove('active');
+                    document.body.style.overflow = '';
+                }
+            }
+        }
+    });
+    
+    // Reset on window resize
+    window.addEventListener('resize', function() {
+        if (window.innerWidth >= 992) {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebarOverlay');
+            if (sidebar) {
+                sidebar.classList.remove('active');
+                if (overlay) overlay.classList.remove('active');
+                document.body.style.overflow = '';
+            }
+        }
+    });
+</script>
