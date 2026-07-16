@@ -37,6 +37,11 @@ urlpatterns = [
     
     # ✅ Self Transfer Request (Users)
     path('transfer-request/', views.request_branch_transfer, name='request_transfer'),
+    # ... existing URLs ...
+    path('transfer-requests/', views.transfer_requests_list, name='transfer_requests'),
+    path('transfer-requests/approve/<int:request_id>/', views.transfer_request_approve, name='transfer_request_approve'),
+    path('transfer-requests/reject/<int:request_id>/', views.transfer_request_reject, name='transfer_request_reject'),
+
     
     # Department Management
     path('departments/', views.department_list, name='department_list'),
