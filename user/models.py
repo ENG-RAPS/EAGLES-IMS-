@@ -31,6 +31,7 @@ ROLE_CHOICES = (
     ('BIOMED_ADMIN', 'Biomed Admin'),
     ('BIOMED_TECHNICIAN', 'Biomed Technician'),
 )
+
 class Profile(models.Model):
     # ... existing fields ...
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='STORE_OFFICER')
@@ -46,9 +47,36 @@ class Profile(models.Model):
 
     def __str__(self):
         return f'{self.user.username}-Profile'
+
+
+# ========== NEW: TransferRequest Model ==========
+class TransferRequest(models.Model):
+    """Model for user branch transfer requests"""
+    STATUS_CHOICES = (
+        ('PENDING', 'Pending'),
+        ('APPROVED', 'Approved'),
+        ('REJECTED', 'Rejected'),
+    )
     
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='transfer_requests')
+    from_branch = models.ForeignKey(Branch, on_delete=models.SET_NULL, null=True, related_name='transfers_from')
+    to_branch = models.ForeignKey(Branch, on_delete=models.CASCADE, related_name='transfers_to')
+    reason = models.TextField(blank=True)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    requested_at = models.DateTimeField(auto_now_add=True)
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, related_name='reviewed_transfers')
+    reviewed_at = models.DateTimeField(null=True, blank=True)
+    review_notes = models.TextField(blank=True)
+    
+    def __str__(self):
+        return f"{self.user.username} → {self.to_branch.name} ({self.status})"
+    
+    class Meta:
+        ordering = ['-requested_at']
+    
+
 # user/models.py
-# ========== NEW: Base Model & Audit Log ==========
+# ========== Base Model & Audit Log ==========
 
 class BaseModel(models.Model):
     """
