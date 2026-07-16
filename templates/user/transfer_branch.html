@@ -1,0 +1,126 @@
+{% extends 'partials/base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-12 col-md-8 col-lg-6">
+            <div class="card shadow">
+                <div class="card-header bg-primary text-white">
+                    <h4 class="mb-0"><i class="fas fa-exchange-alt"></i> Transfer User Branch</h4>
+                </div>
+                <div class="card-body">
+                    <!-- Current User Info -->
+                    <div class="alert alert-info">
+                        <h6 class="mb-2"><i class="fas fa-user"></i> User Information</h6>
+                        <p class="mb-1"><strong>Username:</strong> {{ user.username }}</p>
+                        <p class="mb-1"><strong>Email:</strong> {{ user.email }}</p>
+                        <p class="mb-1"><strong>Current Branch:</strong> 
+                            <span class="badge bg-secondary">{{ profile.branch.name|default:"Not Assigned" }}</span>
+                        </p>
+                        <p class="mb-1"><strong>Current Role:</strong> 
+                            <span class="badge bg-info">{{ profile.role }}</span>
+                        </p>
+                        <p class="mb-0"><strong>Current Department:</strong> 
+                            <span class="badge bg-secondary">{{ profile.department.name|default:"Not Assigned" }}</span>
+                        </p>
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <!-- New Branch -->
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">New Branch <span class="text-danger">*</span></label>
+                            <select name="branch" class="form-select" required>
+                                <option value="">Select New Branch...</option>
+                                {% for branch in branches %}
+                                    <option value="{{ branch.id }}">{{ branch.name }} - {{ branch.location }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Select the branch this user should be transferred to.</small>
+                        </div>
+                        
+                        <!-- New Department -->
+                        <div class="mb-3">
+                            <label class="form-label">New Department</label>
+                            <select name="department" class="form-select">
+                                <option value="">No Change</option>
+                                {% for dept in departments %}
+                                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Optionally change the user's department.</small>
+                        </div>
+                        
+                        <!-- New Role -->
+                        <div class="mb-3">
+                            <label class="form-label">New Role</label>
+                            <select name="role" class="form-select">
+                                <option value="">Keep Current Role</option>
+                                {% for role_code, role_name in role_choices %}
+                                    <option value="{{ role_code }}">{{ role_name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Optionally change the user's role.</small>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Warning -->
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            <strong>Note:</strong> Transferring this user will affect their access to data. 
+                            Make sure they have appropriate permissions in the new branch.
+                        </div>
+                        
+                        <!-- Buttons -->
+                        <div class="d-grid gap-2 d-sm-flex">
+                            <button type="submit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-exchange-alt"></i> Transfer User
+                            </button>
+                            <a href="{% url 'user:list' %}" class="btn btn-secondary flex-grow-1">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Dynamic department loading based on branch selection
+    document.addEventListener('DOMContentLoaded', function() {
+        const branchSelect = document.querySelector('select[name="branch"]');
+        const departmentSelect = document.querySelector('select[name="department"]');
+        
+        branchSelect.addEventListener('change', function() {
+            const branchId = this.value;
+            if (branchId) {
+                // You can make an AJAX call to load departments for this branch
+                // For now, we'll just show a message
+                departmentSelect.innerHTML = '<option value="">Loading departments...</option>';
+                
+                fetch(`/api/departments/?branch=${branchId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        departmentSelect.innerHTML = '<option value="">No Change</option>';
+                        data.forEach(dept => {
+                            const option = document.createElement('option');
+                            option.value = dept.id;
+                            option.textContent = dept.name;
+                            departmentSelect.appendChild(option);
+                        });
+                    })
+                    .catch(() => {
+                        departmentSelect.innerHTML = '<option value="">No Change</option>';
+                    });
+            } else {
+                departmentSelect.innerHTML = '<option value="">No Change</option>';
+            }
+        });
+    });
+</script>
+{% endblock %}

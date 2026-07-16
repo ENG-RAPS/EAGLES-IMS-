@@ -1,4 +1,5 @@
-# user/views.py
+# user/views.py - COMPLETE WORKING VERSION WITH ROLE SELECTION
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, permission_required
@@ -8,13 +9,14 @@ from django.contrib import messages
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
 from django.conf import settings
-
+# user/views.py - At the top with other imports
+from .models import Profile, Branch, Department, ROLE_CHOICES  # 👈 ADD ROLE_CHOICES
 # Check for related records
 from user.models import Profile
 from store.models import Product, StockTransaction
 from biomed.models import Equipment
 from .forms import CreateUserForm, UserUpdateForm, ProfileUpdateForm
-from .models import Profile, Branch, Department
+
 
 
 # ---------- USER REGISTRATION (with admin approval) ----------
@@ -30,22 +32,39 @@ def register(request):
             new_user.is_active = False          # 🔒 Inactive until approved
             new_user.save()
 
-            # Assign a default role (you can change this)
-            default_role = 'STORE_OFFICER'
-            new_user.profile.role = default_role
-            new_user.profile.save()
+            # ✅ Get the selected role from form
+            selected_role = form.cleaned_data.get('role', 'STORE_OFFICER')
+            selected_branch = form.cleaned_data.get('branch')
+            selected_department = form.cleaned_data.get('department')
 
-            # Add to default group
-            group, _ = Group.objects.get_or_create(name=default_role)
+            # ✅ Create profile with the SELECTED role (NOT hardcoded)
+            profile, created = Profile.objects.get_or_create(
+                user=new_user,
+                defaults={
+                    'role': selected_role,  # 👈 NOW USES SELECTED ROLE
+                    'status': True,
+                    'address': '',
+                    'phone': '',
+                    'image': 'default.png',
+                    'branch': selected_branch,
+                    'department': selected_department,
+                }
+            )
+
+            # ✅ Add to the corresponding group
+            group, _ = Group.objects.get_or_create(name=selected_role)
             new_user.groups.add(group)
 
             messages.success(
                 request,
-                f'Account created for {new_user.username}. Please wait for admin approval before logging in.'
+                f'Account created for {new_user.username} as {selected_role}. Please wait for admin approval before logging in.'
             )
             return redirect('user:login')
+        else:
+            messages.error(request, 'Please correct the errors below.')
     else:
         form = CreateUserForm()
+    
     return render(request, 'user/register.html', {'form': form})
 
 
@@ -258,3 +277,86 @@ def department_delete(request, department_id):
         messages.success(request, f'Department "{department.name}" deleted.')
         return redirect('user:department_list')
     return render(request, 'user/department_confirm_delete.html', {'department': department})
+
+# user/views.py - Add this function
+
+@login_required
+@permission_required('user.change_profile', raise_exception=True)
+def transfer_user_branch(request, user_id):
+    """Transfer a user to a different branch"""
+    user = get_object_or_404(User, id=user_id)
+    profile = get_object_or_404(Profile, user=user)
+    
+    if request.method == 'POST':
+        new_branch_id = request.POST.get('branch')
+        new_department_id = request.POST.get('department')
+        new_role = request.POST.get('role')
+        
+        if new_branch_id:
+            new_branch = get_object_or_404(Branch, id=new_branch_id)
+            profile.branch = new_branch
+            profile.save()
+            
+            # Update department if provided
+            if new_department_id:
+                new_department = get_object_or_404(Department, id=new_department_id)
+                profile.department = new_department
+                profile.save()
+            
+            # Update role if provided
+            if new_role:
+                profile.role = new_role
+                profile.save()
+                
+                # Update group
+                user.groups.clear()
+                group, _ = Group.objects.get_or_create(name=new_role)
+                user.groups.add(group)
+            
+            messages.success(
+                request, 
+                f'User {user.username} has been transferred to {new_branch.name} branch.'
+            )
+            return redirect('user:list')
+        else:
+            messages.error(request, 'Please select a branch.')
+    
+    branches = Branch.objects.filter(status=True)
+    departments = Department.objects.filter(branch=profile.branch) if profile.branch else Department.objects.none()
+    
+    context = {
+        'user': user,
+        'profile': profile,
+        'branches': branches,
+        'departments': departments,
+        'role_choices': ROLE_CHOICES,
+    }
+    return render(request, 'user/transfer_branch.html', context)
+
+# user/views.py - User self-transfer
+
+@login_required
+def request_branch_transfer(request):
+    """Allow user to request branch transfer"""
+    if request.method == 'POST':
+        new_branch_id = request.POST.get('branch')
+        reason = request.POST.get('reason', '')
+        
+        if new_branch_id:
+            new_branch = get_object_or_404(Branch, id=new_branch_id)
+            
+            # Create transfer request (you need a TransferRequest model)
+            # Or just update the branch directly if admin approves
+            request.user.profile.branch = new_branch
+            request.user.profile.save()
+            
+            messages.success(
+                request, 
+                f'Your branch has been updated to {new_branch.name}.'
+            )
+            return redirect('user:profile')
+        else:
+            messages.error(request, 'Please select a branch.')
+    
+    branches = Branch.objects.filter(status=True)
+    return render(request, 'user/request_transfer.html', {'branches': branches})

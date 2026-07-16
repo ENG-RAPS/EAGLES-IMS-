@@ -5,11 +5,20 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2><i class="fas fa-users-cog"></i> User Management</h2>
-    <p class="text-muted">Manage user accounts – activate or deactivate users.</p>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+            <h2><i class="fas fa-users-cog"></i> User Management</h2>
+            <p class="text-muted">Manage user accounts – activate, deactivate, or transfer users.</p>
+        </div>
+        <div>
+            <a href="{% url 'user:register' %}" class="btn btn-primary">
+                <i class="fas fa-user-plus"></i> Add User
+            </a>
+        </div>
+    </div>
 
     <div class="table-responsive">
-        <table class="table table-striped table-bordered">
+        <table class="table table-striped table-bordered table-hover">
             <thead class="table-dark">
                 <tr>
                     <th>ID</th>
@@ -17,6 +26,7 @@
                     <th>Email</th>
                     <th>Role</th>
                     <th>Branch</th>
+                    <th>Department</th>
                     <th>Status</th>
                     <th>Actions</th>
                 </tr>
@@ -25,10 +35,30 @@
                 {% for u in users %}
                 <tr>
                     <td>{{ u.id }}</td>
-                    <td>{{ u.username }}</td>
+                    <td>
+                        <strong>{{ u.username }}</strong>
+                        {% if u.is_superuser %}
+                            <span class="badge bg-danger">SUPER</span>
+                        {% endif %}
+                    </td>
                     <td>{{ u.email|default:"-" }}</td>
-                    <td>{{ u.profile.get_role_display|default:"-" }}</td>
-                    <td>{{ u.profile.branch.name|default:"-" }}</td>
+                    <td>
+                        <span class="badge bg-info">{{ u.profile.get_role_display|default:"-" }}</span>
+                    </td>
+                    <td>
+                        {% if u.profile.branch %}
+                            <span class="badge bg-secondary">{{ u.profile.branch.name }}</span>
+                        {% else %}
+                            <span class="text-muted">Not Assigned</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if u.profile.department %}
+                            {{ u.profile.department.name }}
+                        {% else %}
+                            <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
                     <td>
                         {% if u.is_active %}
                             <span class="badge bg-success">Active</span>
@@ -37,22 +67,36 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if not u.is_active %}
-                            <a href="{% url 'user:activate-user' u.id %}" class="btn btn-sm btn-success">
-                                <i class="fas fa-check"></i> Activate
-                            </a>
-                        {% elif not u.is_superuser %}
-                            <a href="{% url 'user:deactivate-user' u.id %}" class="btn btn-sm btn-warning"
-                               onclick="return confirm('Deactivate {{ u.username }}?');">
-                                <i class="fas fa-ban"></i> Deactivate
-                            </a>
-                        {% else %}
-                            <span class="text-muted">Superuser</span>
-                        {% endif %}
+                        <div class="btn-group btn-group-sm" role="group">
+                            <!-- Transfer Button (Admin only) -->
+                            {% if perms.user.change_profile %}
+                                <a href="{% url 'user:transfer_branch' u.id %}" class="btn btn-info" title="Transfer Branch">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </a>
+                            {% endif %}
+
+                            <!-- Activate/Deactivate Buttons -->
+                            {% if not u.is_active %}
+                                <a href="{% url 'user:activate-user' u.id %}" class="btn btn-success" title="Activate">
+                                    <i class="fas fa-check"></i>
+                                </a>
+                            {% elif not u.is_superuser %}
+                                <a href="{% url 'user:deactivate-user' u.id %}" class="btn btn-warning" 
+                                   onclick="return confirm('Deactivate {{ u.username }}?');" title="Deactivate">
+                                    <i class="fas fa-ban"></i>
+                                </a>
+                            {% else %}
+                                <span class="text-muted">-</span>
+                            {% endif %}
+                        </div>
                     </td>
                 </tr>
                 {% empty %}
-                <tr><td colspan="7" class="text-center">No users found.</td></tr>
+                <tr>
+                    <td colspan="8" class="text-center py-3">
+                        <i class="fas fa-info-circle"></i> No users found.
+                    </td>
+                </tr>
                 {% endfor %}
             </tbody>
         </table>

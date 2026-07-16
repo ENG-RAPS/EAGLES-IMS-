@@ -5,7 +5,7 @@ class UserConfig(AppConfig):
     name = 'user'
 
     def ready(self):
-        import user.signals  # Import signals to ensure they are registered
+        import user.signals     # Import signals to ensure they are registered
 
         
 

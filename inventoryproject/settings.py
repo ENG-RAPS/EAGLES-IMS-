@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     'biomed',
     'notifications',
 
+
     'crispy_forms',
      'crispy_bootstrap4',
 ]

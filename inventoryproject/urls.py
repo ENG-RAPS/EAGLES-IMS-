@@ -4,6 +4,9 @@ from django.urls import path, include
 from django.views.generic import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
+from .views import custom_403  # type: ignore # 👈 ADD THIS
+
+handler403 = custom_403  # 👈 ADD THIS
 
 urlpatterns = [
     # Redirect /login to /user/login/
