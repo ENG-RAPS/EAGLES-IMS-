@@ -10,9 +10,9 @@
 <!-- ===== SIDEBAR OVERLAY (Mobile Only) ===== -->
 <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
 
-<!-- ===== SIDEBAR - UNCHANGED FOR DESKTOP ===== -->
+<!-- ===== SIDEBAR ===== -->
 <div class="sidebar bg-dark text-white d-flex flex-column" id="sidebar" 
-     style="width: 250px; height: 100vh; position: fixed; top: 0; left: 0; z-index: 1000; padding-top: 60px; overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
+     style="width: 250px; height: calc(100vh - 56px); position: fixed; top: 56px; left: 0; z-index: 1050; padding-top: 10px; overflow-y: auto; box-shadow: 2px 0 5px rgba(0,0,0,0.1);">
     
     <!-- Brand -->
     <div class="sidebar-brand text-center py-3 border-bottom border-secondary">
@@ -319,10 +319,10 @@
         .sidebar-overlay {
             display: none;
             position: fixed;
-            top: 0;
+            top: 56px;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: calc(100vh - 56px);
             background: rgba(0,0,0,0.5);
             z-index: 1040;
         }

@@ -44,8 +44,8 @@
                 </div>
                 <div class="col-md-2">
                     <select name="sort" class="form-select">
-                        <option value="name" {% if sort == 'name' %}selected{% endif %}>Name</option>
-                        <option value="model" {% if sort == 'model' %}selected{% endif %}>Model</option>
+                        <option value="equipment_name" {% if sort == 'equipment_name' %}selected{% endif %}>Name</option>
+                        <option value="model_number" {% if sort == 'model_number' %}selected{% endif %}>Model</option>
                         <option value="status" {% if sort == 'status' %}selected{% endif %}>Status</option>
                     </select>
                 </div>
@@ -75,16 +75,16 @@
                         {% for eq in page_obj %}
                         <tr>
                             <td>{{ forloop.counter0|add:page_obj.start_index }}</td>
-                            <td>{{ eq.name }}</td>
-                            <td>{{ eq.model|default:"-" }}</td>
+                            <td>{{ eq.equipment_name }}</td>
+                            <td>{{ eq.model_number|default:"-" }}</td>
                             <td>{{ eq.serial_number|default:"-" }}</td>
                             <td>{{ eq.category.name|default:"-" }}</td>
                             <td>{{ eq.department.name|default:"-" }}</td>
                             <td>
                                 <span class="badge 
-                                    {% if eq.status == 'WORKING' %}bg-success
-                                    {% elif eq.status == 'FAULTY' %}bg-danger
-                                    {% elif eq.status == 'UNDER_REPAIR' %}bg-warning
+                                    {% if eq.status == 'Working' %}bg-success
+                                    {% elif eq.status == 'Not Working' %}bg-danger
+                                    {% elif eq.status == 'Under Repair' %}bg-warning
                                     {% else %}bg-secondary{% endif %}">
                                     {{ eq.get_status_display }}
                                 </span>

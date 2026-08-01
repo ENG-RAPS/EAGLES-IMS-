@@ -5,6 +5,20 @@ from django.contrib.auth.models import User
 from .models import Profile, Branch, Department, ROLE_CHOICES
 
 
+ROLE_GROUP_NAMES = {
+    'MAIN_ADMIN': 'Main Admin',
+    'BRANCH_ADMIN': 'Branch Admin',
+    'STORE_ADMIN': 'Store Admin',
+    'STORE_OFFICER': 'Store Officer',
+    'BIOMED_ADMIN': 'Biomed Admin',
+    'BIOMED_TECHNICIAN': 'Biomed Technician',
+}
+
+
+def get_group_name_for_role(role):
+    return ROLE_GROUP_NAMES.get(role, role)
+
+
 class CreateUserForm(UserCreationForm):
     email = forms.EmailField(required=True)
     first_name = forms.CharField(max_length=30, required=True)
@@ -12,7 +26,7 @@ class CreateUserForm(UserCreationForm):
     phone = forms.CharField(max_length=20, required=False)
     address = forms.CharField(widget=forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'e.g., P.O. Box 123'}), required=False, max_length=100)
     branch = forms.ModelChoiceField(queryset=Branch.objects.filter(status=True), required=True)
-    department = forms.ModelChoiceField(queryset=Department.objects.none(), required=False)
+    department = forms.ModelChoiceField(queryset=Department.objects.all(), required=False)
     role = forms.ChoiceField(choices=ROLE_CHOICES, required=True)
 
     class Meta:
@@ -22,6 +36,9 @@ class CreateUserForm(UserCreationForm):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        # Show all departments by default so the dropdown is visible.
+        self.fields['department'].queryset = Department.objects.all()
+
         # Dynamically filter departments based on selected branch (if provided)
         if 'branch' in self.data:
             try:
@@ -29,8 +46,6 @@ class CreateUserForm(UserCreationForm):
                 self.fields['department'].queryset = Department.objects.filter(branch_id=branch_id)
             except (ValueError, TypeError):
                 pass
-        else:
-            self.fields['department'].queryset = Department.objects.none()
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -44,6 +59,7 @@ class CreateUserForm(UserCreationForm):
             profile.branch = self.cleaned_data['branch']
             profile.department = self.cleaned_data['department']
             profile.role = self.cleaned_data['role']
+            profile.status = False
             profile.phone = self.cleaned_data.get('phone', '')
             profile.address = self.cleaned_data.get('address', '')
             profile.save()

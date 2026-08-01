@@ -74,4 +74,41 @@
         </div>
     </div>
 </div>
+
+<script>
+    function slugifyText(text) {
+        return text
+            .toString()
+            .trim()
+            .toUpperCase()
+            .replace(/[^A-Z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    function generateItemCode(name) {
+        const prefix = slugifyText(name).slice(0, 6) || 'ITEM';
+        const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+        return `${prefix}-${randomPart}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.getElementById('id_name');
+        const itemCodeInput = document.getElementById('id_item_code');
+
+        if (!nameInput || !itemCodeInput) return;
+
+        function updateItemCode() {
+            if (!itemCodeInput.value) {
+                const generated = generateItemCode(nameInput.value);
+                itemCodeInput.value = generated;
+            }
+        }
+
+        nameInput.addEventListener('input', updateItemCode);
+
+        if (!itemCodeInput.value && nameInput.value) {
+            updateItemCode();
+        }
+    });
+</script>
 {% endblock %}

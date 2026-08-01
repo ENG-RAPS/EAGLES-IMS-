@@ -98,4 +98,48 @@
         </div>
     </div>
 </div>
+
+<script>
+    function slugifyText(text) {
+        return text
+            .toString()
+            .trim()
+            .toUpperCase()
+            .replace(/[^A-Z0-9]+/g, '-')
+            .replace(/^-+|-+$/g, '');
+    }
+
+    function generateAssetTag(name, serial) {
+        const source = serial ? slugifyText(serial).slice(0, 6) : slugifyText(name).slice(0, 6);
+        const prefix = source || 'ASSET';
+        const randomPart = Math.random().toString(36).substring(2, 10).toUpperCase();
+        return `${prefix}-${randomPart}`;
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const nameInput = document.getElementById('id_equipment_name');
+        const serialInput = document.getElementById('id_serial_number');
+        const assetTagInput = document.getElementById('id_asset_tag');
+
+        if (!assetTagInput) return;
+
+        function updateAssetTag() {
+            if (!assetTagInput.value) {
+                const generated = generateAssetTag(nameInput?.value || '', serialInput?.value || '');
+                assetTagInput.value = generated;
+            }
+        }
+
+        if (nameInput) {
+            nameInput.addEventListener('input', updateAssetTag);
+        }
+        if (serialInput) {
+            serialInput.addEventListener('input', updateAssetTag);
+        }
+
+        if (!assetTagInput.value) {
+            updateAssetTag();
+        }
+    });
+</script>
 {% endblock %}

@@ -32,27 +32,26 @@ def register(request):
             new_user.is_active = False          # 🔒 Inactive until approved
             new_user.save()
 
-            # ✅ Get the selected role from form
             selected_role = form.cleaned_data.get('role', 'STORE_OFFICER')
             selected_branch = form.cleaned_data.get('branch')
             selected_department = form.cleaned_data.get('department')
+            selected_phone = form.cleaned_data.get('phone', '')
+            selected_address = form.cleaned_data.get('address', '')
 
-            # ✅ Create profile with the SELECTED role (NOT hardcoded)
-            profile, created = Profile.objects.get_or_create(
-                user=new_user,
-                defaults={
-                    'role': selected_role,  # 👈 NOW USES SELECTED ROLE
-                    'status': True,
-                    'address': '',
-                    'phone': '',
-                    'image': 'default.png',
-                    'branch': selected_branch,
-                    'department': selected_department,
-                }
-            )
+            profile, _ = Profile.objects.get_or_create(user=new_user)
+            profile.branch = selected_branch
+            profile.department = selected_department
+            profile.role = selected_role
+            profile.status = False
+            profile.phone = selected_phone
+            profile.address = selected_address
+            profile.save()
 
-            # ✅ Add to the corresponding group
-            group, _ = Group.objects.get_or_create(name=selected_role)
+            group_name = dict(ROLE_CHOICES).get(selected_role)
+            if not group_name:
+                group_name = selected_role
+            group, _ = Group.objects.get_or_create(name=group_name)
+            new_user.groups.clear()
             new_user.groups.add(group)
 
             messages.success(
@@ -78,6 +77,9 @@ def activate_user(request, user_id):
     else:
         user.is_active = True
         user.save()
+        if hasattr(user, 'profile'):
+            user.profile.status = True
+            user.profile.save()
         messages.success(request, f'User {user.username} has been activated successfully.')
     return redirect('user:list')
 
@@ -91,6 +93,9 @@ def deactivate_user(request, user_id):
     else:
         user.is_active = False
         user.save()
+        if hasattr(user, 'profile'):
+            user.profile.status = False
+            user.profile.save()
         messages.success(request, f'User {user.username} has been deactivated.')
     return redirect('user:list')
 
@@ -124,8 +129,35 @@ def profile_update(request):
 @login_required
 @permission_required('auth.view_user', raise_exception=True)
 def user_list(request):
+    status_filter = request.GET.get('status', 'all')
     users = User.objects.all().select_related('profile').order_by('-date_joined')
-    return render(request, 'user/user_list.html', {'users': users})
+
+    if status_filter == 'active':
+        users = users.filter(is_active=True)
+    elif status_filter == 'inactive':
+        users = users.filter(is_active=False)
+
+    return render(request, 'user/user_list.html', {
+        'users': users,
+        'status_filter': status_filter,
+    })
+
+
+@login_required
+@permission_required('auth.delete_user', raise_exception=True)
+def delete_user(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if user.is_superuser:
+        messages.error(request, 'Cannot delete a superuser.')
+        return redirect('user:list')
+
+    if request.method == 'POST':
+        username = user.username
+        user.delete()
+        messages.success(request, f'User {username} has been deleted.')
+        return redirect('user:list')
+
+    return render(request, 'user/user_confirm_delete.html', {'user': user})
 
 
 # ---------- CUSTOM LOGIN WITH SIMPLE REDIRECT ----------
@@ -310,7 +342,10 @@ def transfer_user_branch(request, user_id):
                 
                 # Update group
                 user.groups.clear()
-                group, _ = Group.objects.get_or_create(name=new_role)
+                group_name = dict(ROLE_CHOICES).get(new_role)
+                if not group_name:
+                    group_name = new_role
+                group, _ = Group.objects.get_or_create(name=group_name)
                 user.groups.add(group)
             
             messages.success(

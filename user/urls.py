@@ -19,6 +19,7 @@ urlpatterns = [
     path('list/', views.user_list, name='list'),
     path('activate/<int:user_id>/', views.activate_user, name='activate-user'),
     path('deactivate/<int:user_id>/', views.deactivate_user, name='deactivate-user'),
+    path('delete/<int:user_id>/', views.delete_user, name='delete-user'),
 
     # Password Reset
     path('password-reset/', views.CustomPasswordResetView.as_view(), name='password-reset'),

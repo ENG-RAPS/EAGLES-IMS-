@@ -3,23 +3,30 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.core.paginator import Paginator
-from .models import BiomedCategory   # ✅ correct – this is the biomed Category for equipment
-from .models import Equipment, PPM, BiomedCategory
-from user.models import Profile
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required, permission_required
+from django.contrib import messages
+from django.core.paginator import Paginator
 from django.db.models import Q, Count
-from .models import Equipment, PPM, Department 
 from django.utils import timezone
 
-
-# Import all models
 from .models import (
+    BiomedCategory,
     Equipment,
     PPM,
+    Department,
     EquipmentStockTake,
-    EQUIPMENT_STATUS,
     EquipmentTransfer,
-    BiomedCategory,          # <-- ADDED
+    EQUIPMENT_STATUS,
 )
+from .forms import (
+    EquipmentForm,
+    EquipmentTransferForm,
+    PPMForm,
+    StockTakeForm,
+    BiomedCategoryForm,
+)
+from user.models import Branch, Profile
 
 # Import all forms
 from .forms import (
@@ -442,9 +449,10 @@ def equipment_report(request):
     search = request.GET.get('search', '')
     if search:
         queryset = queryset.filter(
-            Q(name__icontains=search) |
-            Q(model__icontains=search) |
-            Q(serial_number__icontains=search)
+            Q(equipment_name__icontains=search) |
+            Q(model_number__icontains=search) |
+            Q(serial_number__icontains=search) |
+            Q(asset_tag__icontains=search)
         )
 
     # Filters
@@ -461,7 +469,10 @@ def equipment_report(request):
         queryset = queryset.filter(department_id=department_id)
 
     # Sorting
-    sort = request.GET.get('sort', 'name')
+    sort = request.GET.get('sort', 'equipment_name')
+    allowed_sorts = ['equipment_name', 'model_number', 'status', 'department__name', 'category__name']
+    if sort not in allowed_sorts:
+        sort = 'equipment_name'
     queryset = queryset.order_by(sort)
 
     paginator = Paginator(queryset, 25)
@@ -476,7 +487,7 @@ def equipment_report(request):
         'sort': sort,
         'categories': BiomedCategory.objects.all(),  # ensure Category exists in biomed
         'departments': Department.objects.all(),
-        'status_choices': Equipment.STATUS_CHOICES,  # if defined
+        'status_choices': EQUIPMENT_STATUS,
     }
     return render(request, 'biomed/equipment_report.html', context)
 

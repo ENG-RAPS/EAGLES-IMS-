@@ -1,8 +1,10 @@
 # store/models.py
+import uuid
+
 from django.db import models
 from django.contrib.auth.models import User
-from user.models import Branch, Department, Profile
 from django.utils import timezone
+from user.models import Branch, Department, Profile
 
 CATEGORY_CHOICES = (
     ('Stationery', 'Stationery'),
@@ -68,6 +70,12 @@ class Product(models.Model):
 
     def __str__(self):
         return self.name
+
+    def save(self, *args, **kwargs):
+        if not self.item_code:
+            prefix = ''.join(ch for ch in self.name if ch.isalnum()).upper()[:6] or 'ITEM'
+            self.item_code = f'{prefix}-{uuid.uuid4().hex[:8].upper()}'
+        super().save(*args, **kwargs)
 
     @property
     def is_low_stock(self):

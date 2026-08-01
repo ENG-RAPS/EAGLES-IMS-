@@ -8,13 +8,19 @@
     <div class="d-flex justify-content-between align-items-center mb-3">
         <div>
             <h2><i class="fas fa-users-cog"></i> User Management</h2>
-            <p class="text-muted">Manage user accounts – activate, deactivate, or transfer users.</p>
+            <p class="text-muted">Manage user accounts – approve registrations, activate, deactivate, or delete users.</p>
         </div>
         <div>
             <a href="{% url 'user:register' %}" class="btn btn-primary">
                 <i class="fas fa-user-plus"></i> Add User
             </a>
         </div>
+    </div>
+
+    <div class="btn-group mb-3" role="group" aria-label="User status filter">
+        <a href="?status=all" class="btn btn-outline-secondary {% if status_filter == 'all' %}active{% endif %}">All Users</a>
+        <a href="?status=active" class="btn btn-outline-secondary {% if status_filter == 'active' %}active{% endif %}">Active</a>
+        <a href="?status=inactive" class="btn btn-outline-secondary {% if status_filter == 'inactive' %}active{% endif %}">Pending Approval</a>
     </div>
 
     <div class="table-responsive">
@@ -80,13 +86,16 @@
                                 <a href="{% url 'user:activate-user' u.id %}" class="btn btn-success" title="Activate">
                                     <i class="fas fa-check"></i>
                                 </a>
-                            {% elif not u.is_superuser %}
+                            {% endif %}
+                            {% if not u.is_superuser %}
                                 <a href="{% url 'user:deactivate-user' u.id %}" class="btn btn-warning" 
                                    onclick="return confirm('Deactivate {{ u.username }}?');" title="Deactivate">
                                     <i class="fas fa-ban"></i>
                                 </a>
-                            {% else %}
-                                <span class="text-muted">-</span>
+                                <a href="{% url 'user:delete-user' u.id %}" class="btn btn-danger" 
+                                   onclick="return confirm('Delete {{ u.username }} permanently?');" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </a>
                             {% endif %}
                         </div>
                     </td>

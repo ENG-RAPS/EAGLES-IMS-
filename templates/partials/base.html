@@ -376,20 +376,8 @@
         </div>
     </nav>
 
-    <!-- ===== SIDEBAR OVERLAY (Mobile) ===== -->
-    <div class="sidebar-overlay" id="sidebarOverlay" onclick="toggleSidebar()"></div>
-
-    <!-- ===== SIDEBAR ===== -->
     {% if user.is_authenticated %}
-        <div class="sidebar" id="sidebar">
-            <div class="sidebar-brand">
-                <h5><i class="fas fa-heartbeat"></i> EAGLES-IMS</h5>
-                <small>Inventory Management</small>
-            </div>
-            
-            <!-- Sidebar content from your partial -->
-            {% include 'partials/sidebar.html' %}
-        </div>
+        {% include 'partials/sidebar.html' %}
     {% endif %}
 
     <!-- ===== MAIN CONTENT ===== -->
