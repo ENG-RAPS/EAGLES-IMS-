@@ -32,3 +32,27 @@ class RegistrationRoleTests(TestCase):
         self.assertEqual(profile.role, 'BIOMED_TECHNICIAN')
         self.assertEqual(profile.branch, self.branch)
         self.assertEqual(profile.department, self.department)
+
+
+class ProfileAnd404PageTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='profiletester',
+            email='profile@example.com',
+            password='StrongPass123!'
+        )
+
+    def test_profile_page_has_home_button(self):
+        self.client.force_login(self.user)
+        response = self.client.get(reverse('user:profile'))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Return to Home')
+        self.assertContains(response, reverse('dashboard-index'))
+
+    def test_unknown_url_uses_custom_404_template(self):
+        response = self.client.get('/this-url-does-not-exist/')
+
+        self.assertEqual(response.status_code, 404)
+        self.assertContains(response, 'Page Not Found', status_code=404)
+        self.assertContains(response, 'Return to Dashboard', status_code=404)

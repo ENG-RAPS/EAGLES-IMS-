@@ -14,7 +14,12 @@
                     <table class="table table-borderless">
                         <thead>
                             <span class="h4">Profile Information</span>
-                            <a class="btn btn-info btn-sm float-right" href="{% url 'user:profile-update' %}">Edit</a>
+                            <div class="float-right">
+                                <a class="btn btn-outline-secondary btn-sm mr-2" href="{% url 'dashboard-index' %}">
+                                    <i class="fas fa-home"></i> Return to Home
+                                </a>
+                                <a class="btn btn-info btn-sm" href="{% url 'user:profile-update' %}">Edit</a>
+                            </div>
                             <hr>
                         </thead>
                         <tbody>

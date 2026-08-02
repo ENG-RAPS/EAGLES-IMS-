@@ -145,7 +145,8 @@ USE_TZ = True
 
 CRISPY_TEMPLATE_PACK = 'bootstrap4'
 
-handler404 = 'your_app.views.custom_404'
+handler404 = 'inventoryproject.views.custom_404'
+handler403 = 'inventoryproject.views.custom_403'
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
@@ -160,7 +161,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "asert",
 ]
 
-STATIC_ROOT = (BASE_DIR/"aset/")
+STATIC_ROOT = BASE_DIR / "staticfiles"
 
 LOGIN_URL = 'user:login'
 LOGIN_REDIRECT_URL = 'dashboard-index'   # <-- must be exactly this
