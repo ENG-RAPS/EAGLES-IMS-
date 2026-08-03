@@ -4,6 +4,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib.auth.views import LoginView, PasswordResetView, PasswordResetConfirmView
+from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.models import User, Group
 from django.contrib import messages
 from django.urls import reverse_lazy
@@ -97,6 +98,53 @@ def deactivate_user(request, user_id):
             user.profile.status = False
             user.profile.save()
         messages.success(request, f'User {user.username} has been deactivated.')
+    return redirect('user:list')
+
+
+@login_required
+@permission_required('auth.change_user', raise_exception=True)
+def set_user_password(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if user.is_superuser:
+        messages.error(request, 'Cannot change password for a superuser from this panel.')
+        return redirect('user:list')
+
+    if request.method == 'POST':
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f'Password for {user.username} has been updated.')
+            return redirect('user:list')
+    else:
+        form = SetPasswordForm(user)
+
+    return render(request, 'user/set_user_password.html', {
+        'form': form,
+        'target_user': user,
+    })
+
+
+@login_required
+@permission_required('auth.change_user', raise_exception=True)
+def send_password_reset_email(request, user_id):
+    user = get_object_or_404(User, id=user_id)
+    if not user.email:
+        messages.error(request, f'Cannot send password reset: {user.username} has no email address.')
+        return redirect('user:list')
+
+    reset_form = PasswordResetForm(data={'email': user.email})
+    if reset_form.is_valid():
+        reset_form.save(
+            request=request,
+            use_https=request.is_secure(),
+            email_template_name='user/password_reset_email.html',
+            subject_template_name='user/password_reset_subject.txt',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            extra_email_context={'user': user},
+        )
+        messages.success(request, f'Password reset email sent to {user.email}.')
+    else:
+        messages.error(request, f'Unable to send password reset email to {user.username}.')
     return redirect('user:list')
 
 

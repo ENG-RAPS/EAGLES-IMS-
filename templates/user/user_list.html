@@ -87,6 +87,16 @@
                                     <i class="fas fa-check"></i>
                                 </a>
                             {% endif %}
+                            {% if u.email %}
+                                <a href="{% url 'user:password-reset-user' u.id %}" class="btn btn-secondary" title="Send password reset email">
+                                    <i class="fas fa-envelope"></i>
+                                </a>
+                            {% endif %}
+                            {% if not u.is_superuser %}
+                                <a href="{% url 'user:set-password-user' u.id %}" class="btn btn-info" title="Set new password">
+                                    <i class="fas fa-key"></i>
+                                </a>
+                            {% endif %}
                             {% if not u.is_superuser %}
                                 <a href="{% url 'user:deactivate-user' u.id %}" class="btn btn-warning" 
                                    onclick="return confirm('Deactivate {{ u.username }}?');" title="Deactivate">

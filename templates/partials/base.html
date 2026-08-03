@@ -40,13 +40,33 @@
             z-index: 1070;
         }
 
+        .navbar {
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+        }
+
+        .navbar .container-fluid {
+            min-height: 56px;
+            display: flex;
+            align-items: center;
+        }
+
         .navbar .navbar-collapse {
             z-index: 1070;
             position: relative;
             background: transparent;
+            align-items: center;
         }
 
         .navbar .navbar-nav {
+            align-items: center;
+            margin-left: auto;
+            gap: 0.35rem;
+        }
+
+        .navbar .navbar-nav .nav-item {
+            display: flex;
             align-items: center;
         }
 
@@ -55,6 +75,37 @@
         .navbar .btn-link {
             position: relative;
             z-index: 1071;
+            display: flex;
+            align-items: center;
+            min-height: 38px;
+            padding: 0.45rem 0.75rem;
+            line-height: 1.2;
+            white-space: nowrap;
+        }
+
+        .navbar .nav-link i,
+        .navbar .btn-link i {
+            margin-right: 0.35rem;
+        }
+
+        .navbar form {
+            display: flex;
+            align-items: center;
+            margin: 0;
+        }
+
+        .navbar-brand {
+            white-space: nowrap;
+        }
+
+        .table-responsive table {
+            min-width: 100%;
+        }
+
+        .table-responsive th,
+        .table-responsive td {
+            white-space: normal;
+            word-break: break-word;
         }
         
         /* ===== SIDEBAR ===== */
@@ -355,10 +406,10 @@
                         </a>
                     </li>
                     <li class="nav-item">
-                        <form method="post" action="{% url 'user:logout' %}" style="display: inline;">
+                        <form method="post" action="{% url 'user:logout' %}">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-link nav-link text-white" 
-                                    style="display: inline; padding: 0; border: none; background: none; text-decoration: none; cursor: pointer;">
+                            <button type="submit" class="btn btn-link text-white logout-nav-button"
+                                    style="border: none; background: none; text-decoration: none; cursor: pointer;">
                                 <i class="fas fa-sign-out-alt"></i> <span class="d-none d-sm-inline">Logout</span>
                             </button>
                         </form>

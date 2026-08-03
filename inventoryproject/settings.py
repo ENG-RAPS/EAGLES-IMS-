@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', '5e*ht@jak_-elb3e4f27_j_f^3#ksd6l_#ttjor8sw6z4eon^^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = config('DEBUG', default=False, cast=bool)
 
 ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 # Application definition
@@ -52,6 +52,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -151,6 +152,7 @@ handler403 = 'inventoryproject.views.custom_403'
 # https://docs.djangoproject.com/en/3.1/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_ROOT = (BASE_DIR/"media/")
 
@@ -158,7 +160,6 @@ MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
-    BASE_DIR / "asert",
 ]
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
