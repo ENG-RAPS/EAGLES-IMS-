@@ -34,6 +34,8 @@ urlpatterns = [
     path('branches/create/', views.branch_create, name='branch_create'),
     path('branches/edit/<int:branch_id>/', views.branch_edit, name='branch_edit'),
     path('branches/delete/<int:branch_id>/', views.branch_delete, name='branch_delete'),
+    path('branches/archive/<int:branch_id>/', views.branch_archive, name='branch_archive'),
+    path('branches/activate/<int:branch_id>/', views.branch_activate, name='branch_activate'),
     
     # ✅ Branch Transfer (Admin only) - ONLY ONE!
     path('transfer/<int:user_id>/', views.transfer_user_branch, name='transfer_branch'),

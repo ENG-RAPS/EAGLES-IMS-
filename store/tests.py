@@ -6,6 +6,23 @@ from store.models import Category, Product, Supplier
 from user.models import Branch, Profile
 
 
+class ReportPageTests(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='reportuser',
+            password='StrongPass123!',
+            is_superuser=True,
+            is_staff=True,
+        )
+        self.branch = Branch.objects.create(name='Main Branch', location='HQ')
+        Profile.objects.get_or_create(user=self.user, defaults={'branch': self.branch, 'role': 'MAIN_ADMIN'})
+        self.client.force_login(self.user)
+
+    def test_store_products_report_renders(self):
+        response = self.client.get(reverse('store:products_report'), HTTP_HOST='localhost')
+        self.assertEqual(response.status_code, 200)
+
+
 class ProductCreationTests(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='storeuser', password='StrongPass123!')

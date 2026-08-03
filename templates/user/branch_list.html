@@ -37,14 +37,29 @@
                         {% if branch.status %}
                             <span class="badge bg-success">Active</span>
                         {% else %}
-                            <span class="badge bg-danger">Inactive</span>
+                            <span class="badge bg-secondary">Archived</span>
                         {% endif %}
                     </td>
                     <td>
-                        <a href="{% url 'user:branch_edit' branch.id %}" class="btn btn-sm btn-warning">
+                        <a href="{% url 'user:branch_edit' branch.id %}" class="btn btn-sm btn-warning" title="Edit branch {{ branch.name }}" aria-label="Edit branch {{ branch.name }}">
                             <i class="fas fa-edit"></i>
                         </a>
-                        <a href="{% url 'user:branch_delete' branch.id %}" class="btn btn-sm btn-danger">
+                        {% if branch.status %}
+                        <form method="post" action="{% url 'user:branch_archive' branch.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-secondary" title="Archive branch {{ branch.name }}" aria-label="Archive branch {{ branch.name }}" onclick="return confirm('Archive branch {{ branch.name }}?');">
+                                <i class="fas fa-archive"></i>
+                            </button>
+                        </form>
+                        {% else %}
+                        <form method="post" action="{% url 'user:branch_activate' branch.id %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-success" title="Reactivate branch {{ branch.name }}" aria-label="Reactivate branch {{ branch.name }}" onclick="return confirm('Reactivate branch {{ branch.name }}?');">
+                                <i class="fas fa-check-circle"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="{% url 'user:branch_delete' branch.id %}" class="btn btn-sm btn-danger" title="Delete branch {{ branch.name }}" aria-label="Delete branch {{ branch.name }}">
                             <i class="fas fa-trash"></i>
                         </a>
                     </td>

@@ -1,5 +1,6 @@
 # user/models.py
 from django.db import models
+from django.db.models.deletion import ProtectedError
 from django.contrib.auth.models import User
 from django.utils import timezone
 
@@ -9,10 +10,41 @@ class Branch(models.Model):
     phone = models.CharField(max_length=20, blank=True)
     email = models.EmailField(blank=True)
     status = models.BooleanField(default=True)
+    logo = models.ImageField(upload_to='branch_logos/', blank=True, null=True)
     date_created = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
         return self.name
+
+    def get_delete_blockers(self):
+        blockers = []
+        for rel in self._meta.related_objects:
+            accessor = rel.get_accessor_name()
+            related_manager = getattr(self, accessor, None)
+            if related_manager is None:
+                continue
+
+            if hasattr(related_manager, 'all'):
+                count = related_manager.all().count()
+                if count:
+                    model_name = rel.related_model._meta.verbose_name_plural.title()
+                    blockers.append((model_name, count))
+            else:
+                try:
+                    if related_manager:
+                        model_name = rel.related_model._meta.verbose_name.title()
+                        blockers.append((model_name, 1))
+                except Exception:
+                    continue
+        return blockers
+
+    def delete(self, using=None, keep_parents=False):
+        blockers = self.get_delete_blockers()
+        if blockers:
+            message = 'Cannot delete branch because it has related records: '
+            message += ', '.join(f'{count} {name}' for name, count in blockers)
+            raise ProtectedError(message, blockers)
+        super().delete(using=using, keep_parents=keep_parents)
 
 class Department(models.Model):
     name = models.CharField(max_length=100)

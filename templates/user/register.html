@@ -1,23 +1,51 @@
 {% extends 'partials/base.html' %}
 {% block title %}Register{% endblock %}
 {% load crispy_forms_tags %}
+{% load static %}
 
 {% block content %}
-<div class="row my-4">
-    <div class="col-md-6 offset-md-3">
-        <div class="border p-3 bg-white">
-            <h4>Register New User</h4>
-            <hr>
-            <form method="POST">
-                {% csrf_token %}
-                {{ form|crispy }}
-                <input class="btn btn-success" type="submit" value="Register">
-            </form>
+<div class="container my-4">
+    <div class="row g-4 align-items-stretch">
+        <div class="col-lg-7">
+            <div class="border p-4 bg-white shadow-sm h-100 rounded">
+                <h4 class="mb-3">Register New User</h4>
+                <hr>
+                <form method="POST">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <input class="btn btn-success mt-3" type="submit" value="Register">
+                </form>
+            </div>
+        </div>
+        <div class="col-lg-5 d-none d-lg-flex">
+            <div class="border rounded shadow-sm bg-light h-100 w-100 p-4 overflow-hidden">
+                <div class="text-center mb-4">
+                    {% if branch_with_logo and branch_with_logo.logo %}
+                        <img src="{{ branch_with_logo.logo.url }}" alt="Hospital Logo" class="img-fluid" style="max-width: 180px; max-height: 180px; object-fit: contain;">
+                    {% elif request.user.is_authenticated and request.user.profile.branch and request.user.profile.branch.logo %}
+                        <img src="{{ request.user.profile.branch.logo.url }}" alt="Hospital Logo" class="img-fluid" style="max-width: 180px; max-height: 180px; object-fit: contain;">
+                    {% else %}
+                        <img src="{% static 'images/hospital_logo.png' %}" alt="Hospital Logo" class="img-fluid" style="max-width: 180px; max-height: 180px; object-fit: contain;">
+                    {% endif %}
+                </div>
+                <h4 class="text-center mb-3">Eagle Health and Clinic Services</h4>
+                <p class="small text-muted mb-3">A trusted private hospital in Kenya, offering quality medical care across multiple specialties. We are committed to your good health with compassionate service, modern facilities, and expert staff.</p>
+                <div class="mb-3">
+                    <h6>Location</h6>
+                    <p class="mb-1">Kikuyu Rd, Next to Kingdom Bank</p>
+                </div>
+                <div class="mb-3">
+                    <h6>Contact</h6>
+                    <p class="mb-1">info@eaglehealthandclinicservices.co.ke</p>
+                    <p class="mb-0">+254 759 828928 / +254 579 3877154</p>
+                </div>
+                <div>
+                    <h6>Follow Us</h6>
+                    <p class="mb-0"><a href="https://www.facebook.com/p/Eagle-Nursing-Home-100063908717850/" target="_blank" rel="noopener" class="text-decoration-none">Facebook</a></p>
+                    <p class="mb-0"><a href="https://eaglehealthandclinicservices.co.ke/" target="_blank" rel="noopener" class="text-decoration-none">Official Website</a></p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
 {% endblock %}
-
-
-
-

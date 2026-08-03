@@ -7,11 +7,22 @@
             <div class="d-flex align-items-center">
                 <div class="marquee-wrapper flex-grow-1 overflow-hidden">
                     <div class="marquee-content">
-                        <span class="marquee-text">
-                            🏥 Welcome to Eagle Nursing Hospital Inventory Management System – Manage your products efficiently and keep track of stock levels.
-                            &nbsp;&nbsp;|&nbsp;&nbsp; 🏥 Welcome to Eagle Nursing Hospital Inventory Management System – Manage your products efficiently and keep track of stock levels.
-                            &nbsp;&nbsp;|&nbsp;&nbsp; 🏥 Welcome to Eagle Nursing Hospital Inventory Management System – Manage your products efficiently and keep track of stock levels.
-                        </span>
+                        {% if user.is_authenticated and user.profile.branch and user.profile.branch.logo %}
+                            {% with logo_url=user.profile.branch.logo.url %}
+                                <span class="marquee-text">
+                                    <img src="{{ logo_url }}" alt="Hospital Logo" class="marquee-icon"> Eagle Health Inventory System — Manage products and stock efficiently.
+                                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                                    Eagle Health Inventory System — Manage products and stock efficiently.
+                                </span>
+                            {% endwith %}
+                        {% else %}
+                            {% static 'images/hospital_logo.png' as logo_url %}
+                            <span class="marquee-text">
+                                <img src="{{ logo_url }}" alt="Hospital Logo" class="marquee-icon"> Eagle Health Inventory System — Manage products and stock efficiently.
+                                &nbsp;&nbsp;|&nbsp;&nbsp;
+                                Eagle Health Inventory System — Manage products and stock efficiently.
+                            </span>
+                        {% endif %}
                     </div>
                 </div>
             </div>
@@ -66,6 +77,17 @@
         letter-spacing: 0.5px;
         text-shadow: 0 1px 3px rgba(0,0,0,0.3);
         white-space: nowrap;
+    }
+
+    .marquee-icon {
+        height: 18px;
+        width: 18px;
+        object-fit: contain;
+        vertical-align: middle;
+        margin-right: 0.25rem;
+        border-radius: 4px;
+        background: #fff;
+        padding: 1px;
     }
 
     @keyframes marquee-scroll {

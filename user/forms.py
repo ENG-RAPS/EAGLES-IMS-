@@ -81,6 +81,11 @@ class UserUpdateForm(forms.ModelForm):
 
 
 class ProfileUpdateForm(forms.ModelForm):
+    branch_logo = forms.ImageField(
+        required=False,
+        widget=forms.ClearableFileInput(attrs={'class': 'form-control-file'}),
+        help_text='Upload the hospital/branch logo to use on reports and registration.',
+    )
     branch = forms.ModelChoiceField(queryset=Branch.objects.filter(status=True), required=False)
     department = forms.ModelChoiceField(queryset=Department.objects.none(), required=False)
     role = forms.ChoiceField(choices=ROLE_CHOICES, required=False)
@@ -99,6 +104,8 @@ class ProfileUpdateForm(forms.ModelForm):
                 self.fields['branch'].disabled = True
                 self.fields['department'].disabled = True
                 self.fields['role'].disabled = True
+            if self.instance and not self.instance.branch:
+                self.fields['branch_logo'].disabled = True
             # Filter department based on selected branch
             if 'branch' in self.data:
                 try:
@@ -118,3 +125,13 @@ class ProfileUpdateForm(forms.ModelForm):
         if branch and department and department.branch != branch:
             raise forms.ValidationError('Department does not belong to the selected branch.')
         return cleaned_data
+
+    def save(self, commit=True):
+        profile = super().save(commit=False)
+        branch_logo = self.cleaned_data.get('branch_logo')
+        if branch_logo and profile.branch:
+            profile.branch.logo = branch_logo
+            profile.branch.save()
+        if commit:
+            profile.save()
+        return profile

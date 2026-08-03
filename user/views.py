@@ -7,6 +7,7 @@ from django.contrib.auth.views import LoginView, PasswordResetView, PasswordRese
 from django.contrib.auth.forms import PasswordResetForm, SetPasswordForm
 from django.contrib.auth.models import User, Group
 from django.contrib import messages
+from django.db.models.deletion import ProtectedError
 from django.urls import reverse_lazy
 from django.core.mail import send_mail
 from django.conf import settings
@@ -65,7 +66,11 @@ def register(request):
     else:
         form = CreateUserForm()
     
-    return render(request, 'user/register.html', {'form': form})
+    branch_with_logo = Branch.objects.filter(logo__isnull=False).exclude(logo='').first()
+    return render(request, 'user/register.html', {
+        'form': form,
+        'branch_with_logo': branch_with_logo,
+    })
 
 
 # ---------- ACTIVATE USER (Admin only) ----------
@@ -249,9 +254,17 @@ def branch_create(request):
         phone = request.POST.get('phone', '')
         email = request.POST.get('email', '')
         status = request.POST.get('status') == 'on'
+        logo = request.FILES.get('logo')
         if name and location:
-            Branch.objects.create(name=name, location=location, phone=phone, email=email, status=status)
-            messages.success(request, f'Branch "{name}" created successfully.')
+            branch = Branch.objects.create(
+                name=name,
+                location=location,
+                phone=phone,
+                email=email,
+                status=status,
+                logo=logo,
+            )
+            messages.success(request, f'Branch "{branch.name}" created successfully.')
             return redirect('user:branch_list')
         else:
             messages.error(request, 'Name and Location are required.')
@@ -268,6 +281,9 @@ def branch_edit(request, branch_id):
         branch.phone = request.POST.get('phone', '')
         branch.email = request.POST.get('email', '')
         branch.status = request.POST.get('status') == 'on'
+        logo = request.FILES.get('logo')
+        if logo:
+            branch.logo = logo
         branch.save()
         messages.success(request, f'Branch "{branch.name}" updated successfully.')
         return redirect('user:branch_list')
@@ -290,9 +306,12 @@ def branch_delete(request, branch_id):
                 f'Cannot delete "{branch.name}" – it has {related_profiles} profile(s), {related_products} product(s), and {related_equipment} equipment(s) linked to it.'
             )
             return redirect('user:branch_list')
-        
-        branch.delete()
-        messages.success(request, f'Branch "{branch.name}" deleted.')
+
+        try:
+            branch.delete()
+            messages.success(request, f'Branch "{branch.name}" deleted.')
+        except ProtectedError as exc:
+            messages.error(request, str(exc))
         return redirect('user:branch_list')
     
     return render(request, 'user/branch_confirm_delete.html', {
@@ -301,6 +320,42 @@ def branch_delete(request, branch_id):
         'related_products': related_products,
         'related_equipment': related_equipment,
     })
+
+
+@login_required
+@permission_required('user.change_branch', raise_exception=True)
+def branch_archive(request, branch_id):
+    branch = get_object_or_404(Branch, id=branch_id)
+    if request.method != 'POST':
+        messages.error(request, 'Branch archive must be submitted from the branch management form.')
+        return redirect('user:branch_list')
+
+    if not branch.status:
+        messages.info(request, f'Branch "{branch.name}" is already inactive.')
+        return redirect('user:branch_list')
+
+    branch.status = False
+    branch.save()
+    messages.success(request, f'Branch "{branch.name}" has been archived and deactivated.')
+    return redirect('user:branch_list')
+
+
+@login_required
+@permission_required('user.change_branch', raise_exception=True)
+def branch_activate(request, branch_id):
+    branch = get_object_or_404(Branch, id=branch_id)
+    if request.method != 'POST':
+        messages.error(request, 'Branch activation must be submitted from the branch management form.')
+        return redirect('user:branch_list')
+
+    if branch.status:
+        messages.info(request, f'Branch "{branch.name}" is already active.')
+        return redirect('user:branch_list')
+
+    branch.status = True
+    branch.save()
+    messages.success(request, f'Branch "{branch.name}" has been reactivated.')
+    return redirect('user:branch_list')
 
 
 # ---------- DEPARTMENT MANAGEMENT (Admin only) ----------

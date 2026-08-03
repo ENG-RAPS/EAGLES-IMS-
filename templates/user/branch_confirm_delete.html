@@ -18,9 +18,15 @@
                         {% if related_products > 0 %}<li>{{ related_products }} product(s) in this branch</li>{% endif %}
                         {% if related_equipment > 0 %}<li>{{ related_equipment }} equipment item(s) in this branch</li>{% endif %}
                     </ul>
-                    <p>Please reassign or delete these records first, then try again.</p>
+                    <p>If you need to keep the data, archive the branch instead of deleting it.</p>
                 </div>
-                <a href="{% url 'user:branch_list' %}" class="btn btn-secondary">Back to Branches</a>
+                <form method="post" action="{% url 'user:branch_archive' branch.id %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-secondary">
+                        <i class="fas fa-archive"></i> Archive Branch
+                    </button>
+                </form>
+                <a href="{% url 'user:branch_list' %}" class="btn btn-light">Back to Branches</a>
             {% else %}
                 <p>Are you sure you want to delete branch <strong>{{ branch.name }}</strong>?</p>
                 <form method="post">

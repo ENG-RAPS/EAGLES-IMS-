@@ -8,7 +8,14 @@
     
     <!-- Brand -->
     <div class="sidebar-brand text-center py-3 border-bottom border-secondary">
-        <h5><i class="fas fa-hospital text-info"></i> Eagle IMS</h5>
+        <div class="d-flex justify-content-center align-items-center mb-2">
+            {% if user.is_authenticated and user.profile.branch and user.profile.branch.logo %}
+                <img src="{{ user.profile.branch.logo.url }}" alt="Hospital Logo" class="sidebar-brand-logo me-2">
+            {% else %}
+                <img src="{% static 'images/hospital_logo.png' %}" alt="Hospital Logo" class="sidebar-brand-logo me-2">
+            {% endif %}
+            <h5 class="mb-0">Eagle Health</h5>
+        </div>
         <small class="text-muted">{% if user.is_authenticated %}{{ user.profile.branch.name|default:"Main Branch" }}{% else %}System{% endif %}</small>
     </div>
 

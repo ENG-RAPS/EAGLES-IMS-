@@ -10,7 +10,7 @@
             <h4><i class="fas fa-store"></i> {{ title }}</h4>
         </div>
         <div class="card-body">
-            <form method="post">
+            <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="mb-3">
                     <label for="name" class="form-label">Branch Name *</label>
@@ -27,6 +27,16 @@
                 <div class="mb-3">
                     <label for="email" class="form-label">Email</label>
                     <input type="email" name="email" id="email" class="form-control" value="{{ branch.email|default:'' }}">
+                </div>
+                <div class="mb-3">
+                    <label for="logo" class="form-label">Branch Logo</label>
+                    <input type="file" name="logo" id="logo" class="form-control">
+                    {% if branch.logo %}
+                        <div class="mt-2">
+                            <p class="mb-1">Current logo:</p>
+                            <img src="{{ branch.logo.url }}" alt="Current logo" class="img-fluid" style="max-height: 160px; object-fit: contain;">
+                        </div>
+                    {% endif %}
                 </div>
                 <div class="mb-3 form-check">
                     <input type="checkbox" name="status" id="status" class="form-check-input" {% if branch.status != False %}checked{% endif %}>

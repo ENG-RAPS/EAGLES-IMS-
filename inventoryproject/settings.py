@@ -21,7 +21,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.environ.get('SECRET_KEY', '5e*ht@jak_-elb3e4f27_j_f^3#ksd6l_#ttjor8sw6z4eon^^')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = os.environ.get(
     "ALLOWED_HOSTS",
@@ -82,6 +82,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'inventoryproject.context_processors.report_settings',
             ],
         },
     },
@@ -164,6 +165,12 @@ MEDIA_URL = '/media/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
+
+# Print / report letterhead settings
+REPORT_COMPANY_NAME = config('REPORT_COMPANY_NAME', default='Eagle Health and Clinic Services')
+REPORT_ADDRESS = config('REPORT_ADDRESS', default='Kikuyu Rd, Next to Kingdom Bank')
+REPORT_CONTACT = config('REPORT_CONTACT', default='+254 759 828928 / +254 579 3877154, emailinfo@eaglehealthandclinicservices.co.ke')
+REPORT_LOGO_PATH = config('REPORT_LOGO_PATH', default='images/hospital_logo.png')
 
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
