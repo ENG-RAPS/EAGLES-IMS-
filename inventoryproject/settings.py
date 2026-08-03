@@ -23,7 +23,10 @@ SECRET_KEY = os.environ.get('SECRET_KEY', '5e*ht@jak_-elb3e4f27_j_f^3#ksd6l_#ttj
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+ALLOWED_HOSTS = os.environ.get(
+    "ALLOWED_HOSTS",
+    "localhost,127.0.0.1"
+).split(",")
 # Application definition
 
 CSRF_TRUSTED_ORIGINS = [
