@@ -219,6 +219,10 @@
             outline: none;
             box-shadow: none;
         }
+
+        body.sidebar-open {
+            overflow: hidden;
+        }
         
         /* Sidebar Nav Headers */
         .sidebar .nav-header {
@@ -380,7 +384,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-info fixed-top">
         <div class="container-fluid">
             <!-- Sidebar Toggle Button (Mobile) -->
-            <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="Toggle sidebar">
+            <button type="button" class="sidebar-toggle" aria-label="Toggle sidebar" aria-controls="sidebar" aria-expanded="false">
                 <i class="fas fa-bars"></i>
             </button>
             
@@ -483,15 +487,24 @@
                 display: inline-flex;
             }
             .sidebar {
+                display: block;
                 transform: translateX(-100%);
                 visibility: hidden;
                 opacity: 0;
-                width: 280px;
+                width: 250px;
+                left: 0;
+                top: 56px;
+                height: calc(100vh - 56px);
+                position: fixed;
             }
             .sidebar.active {
+                display: block;
                 transform: translateX(0);
                 visibility: visible;
                 opacity: 1;
+            }
+            .sidebar-overlay {
+                top: 56px;
             }
             .main-content {
                 margin-left: 0 !important;
@@ -503,9 +516,13 @@
         function openSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
+            const toggleButton = document.querySelector('.sidebar-toggle');
             if (!sidebar) return;
             sidebar.classList.add('active');
             if (overlay) overlay.classList.add('active');
+            if (toggleButton) {
+                toggleButton.setAttribute('aria-expanded', 'true');
+            }
             if (window.innerWidth <= 991) {
                 document.body.classList.add('sidebar-open');
                 document.body.style.overflow = 'hidden';
@@ -515,9 +532,13 @@
         function closeSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.getElementById('sidebarOverlay');
+            const toggleButton = document.querySelector('.sidebar-toggle');
             if (!sidebar) return;
             sidebar.classList.remove('active');
             if (overlay) overlay.classList.remove('active');
+            if (toggleButton) {
+                toggleButton.setAttribute('aria-expanded', 'false');
+            }
             document.body.classList.remove('sidebar-open');
             document.body.style.overflow = '';
         }
@@ -555,6 +576,22 @@
                     closeSidebar();
                 });
             }
+
+            document.addEventListener('click', function(event) {
+                const sidebar = document.getElementById('sidebar');
+                const toggle = document.querySelector('.sidebar-toggle');
+                if (!sidebar || !sidebar.classList.contains('active')) return;
+                if (window.innerWidth > 991) return;
+                if (toggle && (toggle.contains(event.target) || event.target === toggle)) return;
+                if (sidebar.contains(event.target)) return;
+                closeSidebar();
+            });
+
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' || event.key === 'Esc') {
+                    closeSidebar();
+                }
+            });
 
             const navLinks = document.querySelectorAll('#sidebar .nav-link');
             navLinks.forEach(function(link) {
