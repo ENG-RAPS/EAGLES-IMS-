@@ -18,6 +18,7 @@ urlpatterns = [
     path('ppm/<int:pk>/', views.ppm_detail, name='ppm_detail'),
     path('ppm/<int:pk>/edit/', views.ppm_edit, name='ppm_edit'),
     path('ppm/<int:pk>/delete/', views.ppm_delete, name='ppm_delete'),
+    path('ppm/<int:pk>/set-status/', views.ppm_set_status, name='ppm_set_status'),
 
 
     # StockTake
@@ -43,6 +44,13 @@ path('categories/add/', views.category_create, name='category_create'),
 path('categories/<int:pk>/edit/', views.category_edit, name='category_edit'),
 path('categories/<int:pk>/delete/', views.category_delete, name='category_delete'),
 
+
+    # Corrective Maintenance
+path('corrective/', views.corrective_list, name='corrective_list'),
+    path('corrective/add/', views.corrective_create, name='corrective_create'),
+    path('corrective/<int:pk>/', views.corrective_detail, name='corrective_detail'),
+    path('corrective/<int:pk>/edit/', views.corrective_edit, name='corrective_edit'),
+    path('corrective/<int:pk>/delete/', views.corrective_delete, name='corrective_delete'),
 
     # ===== REPORTS =====
 path('reports/equipment/', views.equipment_report, name='equipment_report'),

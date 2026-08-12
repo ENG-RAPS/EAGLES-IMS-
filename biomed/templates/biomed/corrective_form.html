@@ -1,0 +1,39 @@
+{% extends 'partials/base.html' %}
+{% block title %}Add Corrective Maintenance{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header bg-primary text-white">Add Corrective Maintenance</div>
+    <div class="card-body">
+      <form method="post" enctype="multipart/form-data">{% csrf_token %}
+        {{ form.non_field_errors }}
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            {{ form.equipment.label_tag }}
+            {{ form.equipment }}
+          </div>
+          <div class="form-group col-md-6">
+            {{ form.date.label_tag }}
+            {{ form.date }}
+          </div>
+        </div>
+        <div class="form-group">
+          {{ form.diagnosis.label_tag }}
+          {{ form.diagnosis }}
+        </div>
+        <div class="form-group">
+          {{ form.solution.label_tag }}
+          {{ form.solution }}
+        </div>
+        <div class="form-group">
+          {{ form.remarks.label_tag }}
+          {{ form.remarks }}
+        </div>
+        <button class="btn btn-success">Save</button>
+        <a href="{% url 'biomed:corrective_list' %}" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

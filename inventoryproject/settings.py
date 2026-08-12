@@ -164,6 +164,7 @@ MEDIA_URL = '/media/'
 
 STATICFILES_DIRS = [
     BASE_DIR / "static",
+    BASE_DIR / "asert",
 ]
 
 # Print / report letterhead settings

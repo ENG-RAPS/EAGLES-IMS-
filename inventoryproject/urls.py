@@ -23,8 +23,9 @@ urlpatterns = [
     path('admin/', admin.site.urls),
 ]
 
+urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+
 if settings.DEBUG or 'localhost' in settings.ALLOWED_HOSTS or '127.0.0.1' in settings.ALLOWED_HOSTS:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
     urlpatterns += staticfiles_urlpatterns()
     
     

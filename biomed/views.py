@@ -13,6 +13,7 @@ from django.utils import timezone
 from .models import (
     BiomedCategory,
     Equipment,
+    CorrectiveMaintenance,
     PPM,
     Department,
     EquipmentStockTake,
@@ -25,7 +26,9 @@ from .forms import (
     PPMForm,
     StockTakeForm,
     BiomedCategoryForm,
+    CorrectiveMaintenanceForm,
 )
+from .service import create_corrective, set_ppm_status
 from user.models import Branch, Profile
 
 # Import all forms
@@ -582,3 +585,81 @@ def equipment_by_department_report(request):
         'total': queryset.count(),
     }
     return render(request, 'biomed/equipment_by_department_report.html', context)
+
+
+# ---------- CORRECTIVE MAINTENANCE ----------
+@login_required
+def corrective_list(request):
+    user = request.user
+    branch = Profile.objects.get(user=user).branch
+    if user.is_superuser:
+        cms = CorrectiveMaintenance.objects.select_related('equipment').all()
+    else:
+        cms = CorrectiveMaintenance.objects.filter(equipment__branch=branch)
+
+    paginator = Paginator(cms.order_by('-date'), 25)
+    page_obj = paginator.get_page(request.GET.get('page'))
+    return render(request, 'biomed/corrective_list.html', {'cms': page_obj})
+
+
+@login_required
+@permission_required('biomed.add_correctivemaintenance', raise_exception=True)
+def corrective_create(request):
+    if request.method == 'POST':
+        form = CorrectiveMaintenanceForm(request.POST)
+        if form.is_valid():
+            cm = form.save(commit=False)
+            cm.processed_by = request.user
+            cm.save()
+            messages.success(request, 'Corrective maintenance record created.')
+            return redirect('biomed:corrective_list')
+    else:
+        form = CorrectiveMaintenanceForm()
+    return render(request, 'biomed/corrective_form.html', {'form': form, 'title': 'Add Corrective Maintenance'})
+
+
+@login_required
+def corrective_detail(request, pk):
+    cm = get_object_or_404(CorrectiveMaintenance, pk=pk)
+    return render(request, 'biomed/corrective_detail.html', {'cm': cm})
+
+
+@login_required
+@permission_required('biomed.change_correctivemaintenance', raise_exception=True)
+def corrective_edit(request, pk):
+    cm = get_object_or_404(CorrectiveMaintenance, pk=pk)
+    if request.method == 'POST':
+        form = CorrectiveMaintenanceForm(request.POST, instance=cm)
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'Corrective maintenance record updated.')
+            return redirect('biomed:corrective_detail', pk=cm.pk)
+    else:
+        form = CorrectiveMaintenanceForm(instance=cm)
+    return render(request, 'biomed/corrective_form.html', {'form': form, 'title': 'Edit Corrective Maintenance'})
+
+
+@login_required
+@permission_required('biomed.delete_correctivemaintenance', raise_exception=True)
+def corrective_delete(request, pk):
+    cm = get_object_or_404(CorrectiveMaintenance, pk=pk)
+    if request.method == 'POST':
+        cm.delete()
+        messages.success(request, 'Corrective maintenance record deleted.')
+        return redirect('biomed:corrective_list')
+    return render(request, 'biomed/corrective_confirm_delete.html', {'cm': cm})
+
+
+# ---------- PPM Quick Status Change (AJAX) ----------
+@login_required
+@permission_required('biomed.change_ppm', raise_exception=True)
+def ppm_set_status(request, pk):
+    if request.method != 'POST':
+        return redirect('biomed:ppm_list')
+    status = request.POST.get('status')
+    try:
+        ppm = set_ppm_status(pk, status, user=request.user)
+        messages.success(request, f'PPM status updated to {status}.')
+    except Exception as e:
+        messages.error(request, str(e))
+    return redirect('biomed:ppm_list')

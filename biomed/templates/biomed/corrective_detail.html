@@ -1,0 +1,27 @@
+{% extends 'partials/base.html' %}
+{% block title %}Corrective Maintenance Detail{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="card shadow-sm">
+    <div class="card-header">Corrective Maintenance</div>
+    <div class="card-body">
+      <h5>{{ cm.equipment.equipment_name }}</h5>
+      <p><strong>Date:</strong> {{ cm.date }}</p>
+      <p><strong>Diagnosis:</strong><br/>{{ cm.diagnosis|linebreaks }}</p>
+      <p><strong>Solution:</strong><br/>{{ cm.solution|linebreaks }}</p>
+      <p><strong>Remarks:</strong><br/>{{ cm.remarks|linebreaks }}</p>
+      <p><strong>Processed by:</strong> {{ cm.processed_by.get_full_name }}</p>
+      <a href="{% url 'biomed:corrective_list' %}" class="btn btn-secondary">Back</a>
+      {% if perms.biomed.change_correctivemaintenance %}
+      <a href="{% url 'biomed:corrective_edit' cm.pk %}" class="btn btn-warning">Edit</a>
+      {% endif %}
+      {% if perms.biomed.delete_correctivemaintenance %}
+      <form method="post" action="{% url 'biomed:corrective_delete' cm.pk %}" style="display:inline">{% csrf_token %}
+        <button class="btn btn-danger" onclick="return confirm('Delete this record?');">Delete</button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

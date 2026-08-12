@@ -141,6 +141,28 @@ class PPM(models.Model):
 
 
 # ============================================================
+# 7. CORRECTIVE MAINTENANCE
+# ============================================================
+class CorrectiveMaintenance(models.Model):
+    equipment = models.ForeignKey(Equipment, on_delete=models.CASCADE, related_name='corrective_maintenances')
+    date = models.DateField(default=timezone.now)
+    diagnosis = models.TextField()
+    solution = models.TextField(blank=True)
+    remarks = models.TextField(blank=True)
+    processed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='cm_processed')
+
+    # Audit
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-date', '-created_at']
+
+    def __str__(self):
+        return f"Corrective for {self.equipment.equipment_name} on {self.date}"
+
+
+# ============================================================
 # 5. EQUIPMENT STOCK TAKE
 # ============================================================
 class EquipmentStockTake(models.Model):

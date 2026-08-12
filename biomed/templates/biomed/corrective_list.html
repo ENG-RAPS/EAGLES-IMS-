@@ -1,0 +1,64 @@
+{% extends 'partials/base.html' %}
+{% block title %}Corrective Maintenance{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Corrective Maintenance</h3>
+    <a href="{% url 'biomed:corrective_create' %}" class="btn btn-success">New Corrective</a>
+  </div>
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table class="table table-striped">
+          <thead>
+            <tr>
+              <th>Equipment</th>
+              <th>Date</th>
+              <th>Diagnosis</th>
+              <th>Processed By</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for cm in cms %}
+            <tr>
+              <td>{{ cm.equipment.equipment_name }}</td>
+              <td>{{ cm.date }}</td>
+              <td>{{ cm.diagnosis|truncatechars:80 }}</td>
+              <td>{{ cm.processed_by.get_full_name }}</td>
+              <td>
+                <a href="{% url 'biomed:corrective_detail' cm.pk %}" class="btn btn-sm btn-info">View</a>
+                {% if perms.biomed.change_correctivemaintenance %}
+                <a href="{% url 'biomed:corrective_edit' cm.pk %}" class="btn btn-sm btn-warning">Edit</a>
+                {% endif %}
+                {% if perms.biomed.delete_correctivemaintenance %}
+                <form method="post" action="{% url 'biomed:corrective_delete' cm.pk %}" class="d-inline">{% csrf_token %}
+                  <button class="btn btn-sm btn-danger" onclick="return confirm('Delete this record?');">Delete</button>
+                </form>
+                {% endif %}
+              </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5" class="text-center">No records found.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      {% if cms.has_other_pages %}
+        <nav aria-label="pagination">
+          <ul class="pagination">
+            {% if cms.has_previous %}
+              <li class="page-item"><a class="page-link" href="?page={{ cms.previous_page_number }}">Prev</a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link">Page {{ cms.number }} of {{ cms.paginator.num_pages }}</span></li>
+            {% if cms.has_next %}
+              <li class="page-item"><a class="page-link" href="?page={{ cms.next_page_number }}">Next</a></li>
+            {% endif %}
+          </ul>
+        </nav>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock %}

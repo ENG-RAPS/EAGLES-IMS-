@@ -1,6 +1,6 @@
 # biomed/forms.py
 from django import forms
-from .models import Equipment, PPM, EquipmentStockTake
+from .models import Equipment, PPM, EquipmentStockTake, CorrectiveMaintenance
 from .models import EquipmentTransfer
 from user.models import Branch, Profile 
 from .models import BiomedCategory
@@ -68,3 +68,15 @@ class BiomedCategoryForm(forms.ModelForm):
     class Meta:
         model = BiomedCategory
         fields = ['name', 'description']
+
+
+class CorrectiveMaintenanceForm(forms.ModelForm):
+    class Meta:
+        model = CorrectiveMaintenance
+        fields = ['equipment', 'date', 'diagnosis', 'solution', 'remarks']
+        widgets = {
+            'date': forms.DateInput(attrs={'type': 'date'}),
+            'diagnosis': forms.Textarea(attrs={'rows': 4}),
+            'solution': forms.Textarea(attrs={'rows': 4}),
+            'remarks': forms.Textarea(attrs={'rows': 3}),
+        }
