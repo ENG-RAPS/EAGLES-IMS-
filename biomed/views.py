@@ -7,6 +7,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.contrib import messages
 from django.core.paginator import Paginator
+import json
 from django.db.models import Q, Count
 from django.utils import timezone
 
@@ -168,8 +169,11 @@ def ppm_list(request):
 @login_required
 @permission_required('biomed.add_ppm', raise_exception=True)
 def ppm_create(request):
+    branch = Profile.objects.get(user=request.user).branch
+    equipment_queryset = Equipment.objects.all() if request.user.is_superuser else Equipment.objects.filter(branch=branch)
     if request.method == 'POST':
         form = PPMForm(request.POST)
+        form.fields['equipment'].queryset = equipment_queryset
         if form.is_valid():
             ppm = form.save(commit=False)
             ppm.serial_number = ppm.equipment.serial_number
@@ -181,12 +185,56 @@ def ppm_create(request):
             return redirect('biomed:ppm_list')
     else:
         form = PPMForm()
-    return render(request, 'biomed/ppm_form.html', {'form': form, 'title': 'Schedule PPM'})
+        form.fields['equipment'].queryset = equipment_queryset
+
+    equipment_data = {
+        str(eq.pk): {
+            'serial_number': eq.serial_number or '',
+            'model_number': eq.model_number or '',
+            'location': eq.location or '',
+        }
+        for eq in equipment_queryset
+    }
+    return render(request, 'biomed/ppm_form.html', {
+        'form': form,
+        'title': 'Schedule PPM',
+        'equipment_data': json.dumps(equipment_data),
+    })
 
 
 @login_required
 @permission_required('biomed.change_ppm', raise_exception=True)
 def ppm_edit(request, pk):
+    ppm = get_object_or_404(PPM, pk=pk)
+    branch = Profile.objects.get(user=request.user).branch
+    equipment_queryset = Equipment.objects.all() if request.user.is_superuser else Equipment.objects.filter(branch=branch)
+    if request.method == 'POST':
+        form = PPMForm(request.POST, instance=ppm)
+        form.fields['equipment'].queryset = equipment_queryset
+        if form.is_valid():
+            form.save()
+            messages.success(request, 'PPM updated successfully.')
+            return redirect('biomed:ppm_list')
+    else:
+        form = PPMForm(instance=ppm)
+        form.fields['equipment'].queryset = equipment_queryset
+        form.fields['serial_number'].initial = ppm.serial_number
+        form.fields['model_number'].initial = ppm.model_number
+        form.fields['location'].initial = ppm.location
+
+    equipment_data = {
+        str(eq.pk): {
+            'serial_number': eq.serial_number or '',
+            'model_number': eq.model_number or '',
+            'location': eq.location or '',
+        }
+        for eq in equipment_queryset
+    }
+    return render(request, 'biomed/ppm_form.html', {
+        'form': form,
+        'title': 'Edit PPM',
+        'equipment_data': json.dumps(equipment_data),
+    })
     ppm = get_object_or_404(PPM, pk=pk)
     if request.method == 'POST':
         form = PPMForm(request.POST, instance=ppm)

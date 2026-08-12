@@ -32,9 +32,13 @@ class EquipmentForm(forms.ModelForm):
 
 
 class PPMForm(forms.ModelForm):
+    serial_number = forms.CharField(required=False, disabled=True, widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}))
+    model_number = forms.CharField(required=False, disabled=True, widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}))
+    location = forms.CharField(required=False, disabled=True, widget=forms.TextInput(attrs={'readonly': 'readonly', 'class': 'form-control'}))
+
     class Meta:
         model = PPM
-        fields = ['equipment', 'ppm_date', 'next_ppm_date', 'technician', 'status', 'remarks']
+        fields = ['equipment', 'serial_number', 'model_number', 'location', 'ppm_date', 'next_ppm_date', 'technician', 'status', 'remarks']
         widgets = {
             'ppm_date': forms.DateInput(attrs={'type': 'date'}),
             'next_ppm_date': forms.DateInput(attrs={'type': 'date'}),

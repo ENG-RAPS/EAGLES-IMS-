@@ -16,8 +16,19 @@
 
                         <!-- Equipment Selection -->
                         <div class="form-row">
-                            <div class="col-md-12">
+                            <div class="col-md-6">
                                 {{ form.equipment|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.serial_number|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="col-md-6">
+                                {{ form.model_number|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.location|as_crispy_field }}
                             </div>
                         </div>
 
@@ -60,6 +71,26 @@
                             </div>
                         </div>
                     </form>
+                    <script>
+                        const equipmentData = JSON.parse('{{ equipment_data|escapejs }}');
+                        const equipmentSelect = document.getElementById('id_equipment');
+                        const serialInput = document.getElementById('id_serial_number');
+                        const modelInput = document.getElementById('id_model_number');
+                        const locationInput = document.getElementById('id_location');
+
+                        function updatePpmEquipmentFields() {
+                            const selectedId = equipmentSelect.value;
+                            const data = equipmentData[selectedId] || { serial_number: '', model_number: '', location: '' };
+                            if (serialInput) serialInput.value = data.serial_number;
+                            if (modelInput) modelInput.value = data.model_number;
+                            if (locationInput) locationInput.value = data.location;
+                        }
+
+                        if (equipmentSelect) {
+                            equipmentSelect.addEventListener('change', updatePpmEquipmentFields);
+                            document.addEventListener('DOMContentLoaded', updatePpmEquipmentFields);
+                        }
+                    </script>
                 </div>
             </div>
         </div>

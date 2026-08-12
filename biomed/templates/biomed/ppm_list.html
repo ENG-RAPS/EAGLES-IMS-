@@ -90,16 +90,19 @@
                                         </a>
 
                                         <!-- Quick status change buttons -->
-                                        <div class="btn-group ml-2" role="group">
-                                            <form method="post" action="{% url 'biomed:ppm_set_status' ppm.pk %}" style="display:inline">{% csrf_token %}
+                                        <div class="d-inline-flex flex-nowrap align-items-center" style="gap: 4px; white-space: nowrap;">
+                                            <form method="post" action="{% url 'biomed:ppm_set_status' ppm.pk %}" class="m-0">
+                                                {% csrf_token %}
                                                 <input type="hidden" name="status" value="Completed">
                                                 <button class="btn btn-sm btn-success" title="Mark Completed">C</button>
                                             </form>
-                                            <form method="post" action="{% url 'biomed:ppm_set_status' ppm.pk %}" style="display:inline">{% csrf_token %}
+                                            <form method="post" action="{% url 'biomed:ppm_set_status' ppm.pk %}" class="m-0">
+                                                {% csrf_token %}
                                                 <input type="hidden" name="status" value="Pending">
                                                 <button class="btn btn-sm btn-warning" title="Mark Pending">P</button>
                                             </form>
-                                            <form method="post" action="{% url 'biomed:ppm_set_status' ppm.pk %}" style="display:inline">{% csrf_token %}
+                                            <form method="post" action="{% url 'biomed:ppm_set_status' ppm.pk %}" class="m-0">
+                                                {% csrf_token %}
                                                 <input type="hidden" name="status" value="Overdue">
                                                 <button class="btn btn-sm btn-danger" title="Mark Overdue">O</button>
                                             </form>
